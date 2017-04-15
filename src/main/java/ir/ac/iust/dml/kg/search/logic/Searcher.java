@@ -22,28 +22,36 @@ public class Searcher {
     public SearchResult search(String keyword) {
         String queryText = normalizer.normalize(keyword);
         final SearchResult result = new SearchResult();
+        try {
+            List<MatchedResource> matchedResources = extractor.search(queryText, true);
 
-        List<MatchedResource> matchedResources = extractor.search(queryText, true);
+            for (MatchedResource matchedResource : matchedResources) {
 
-        for (MatchedResource matchedResource : matchedResources) {
-            ResultEntity resultEntity = new ResultEntity();
+                try {
+                    ResultEntity resultEntity = new ResultEntity();
 
-            resultEntity.setTitle(matchedResource.getResource().getLabel());
-            resultEntity.setSubtitle(matchedResource.getResource().getInstanceOf());
-            resultEntity.setLink(matchedResource.getResource().getIri());
-            if (matchedResource.getResource().getClassTree() != null) {
-                if (matchedResource.getResource().getClassTree().contains("DatatypeProperty"))
-                    resultEntity.setDescription("رابطه (خصیصه)");
-                if (matchedResource.getResource().getClassTree().contains("Resource"))
-                    resultEntity.setDescription("موجودیت");
-            }
-            if (matchedResource.getResource().getLabel() == null) {
-                resultEntity.setTitle(extractTitleFromIri(matchedResource.getResource().getIri()));
-            }
+                    resultEntity.setTitle(matchedResource.getResource().getLabel());
+                    resultEntity.setSubtitle(matchedResource.getResource().getInstanceOf());
+                    resultEntity.setLink(matchedResource.getResource().getIri());
+                    if (matchedResource.getResource().getClassTree() != null) {
+                        if (matchedResource.getResource().getClassTree().contains("DatatypeProperty"))
+                            resultEntity.setDescription("رابطه (خصیصه)");
+                        if (matchedResource.getResource().getClassTree().contains("Resource"))
+                            resultEntity.setDescription("موجودیت");
+                    }
+                    if (matchedResource.getResource().getLabel() == null) {
+                        resultEntity.setTitle(extractTitleFromIri(matchedResource.getResource().getIri()));
+                    }
 
             /*if (resultEntity.getTitle() == null)
                 resultEntity.setTitle("پاسخی یافت نشد");*/
-            result.getEntities().add(resultEntity);
+                    result.getEntities().add(resultEntity);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return result;
 
