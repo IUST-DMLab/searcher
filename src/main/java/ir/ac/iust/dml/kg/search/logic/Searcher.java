@@ -9,7 +9,9 @@ import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.SearchResult;
 import knowledgegraph.normalizer.PersianCharNormalizer;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Searcher {
     private final IResourceExtractor extractor;
@@ -27,13 +29,10 @@ public class Searcher {
         try {
             List<MatchedResource> matchedResources = extractor.search(queryText, true);
 
+            Map<Map.Entry<String, String>, Long> entityPropertyFreqs = new HashMap<>();
             for (MatchedResource matchedResource : matchedResources) {
-
                 try {
-
-
                     ResultEntity resultEntity = new ResultEntity();
-
                     resultEntity.setTitle(matchedResource.getResource().getLabel());
                     resultEntity.setSubtitle(kgFetcher.fetchLabel(matchedResource.getResource().getInstanceOf()));
                     resultEntity.setLink(matchedResource.getResource().getIri());
@@ -76,6 +75,7 @@ public class Searcher {
                 return FakeLogic.list();
         }*/
     }
+
 
     private String extractTitleFromIri(String iri) {
         return iri.substring(iri.lastIndexOf("/") + 1).replace('_', ' ');
