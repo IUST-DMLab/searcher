@@ -13,10 +13,12 @@ import java.util.List;
 
 public class Searcher {
     private final IResourceExtractor extractor;
+    private final KGFetcher kgFetcher;
     private static final PersianCharNormalizer normalizer = new PersianCharNormalizer();
 
     public Searcher() throws Exception {
         extractor = setupNewExtractor();
+        kgFetcher = new KGFetcher();
     }
 
     public SearchResult search(String keyword) {
@@ -28,10 +30,12 @@ public class Searcher {
             for (MatchedResource matchedResource : matchedResources) {
 
                 try {
+
+
                     ResultEntity resultEntity = new ResultEntity();
 
                     resultEntity.setTitle(matchedResource.getResource().getLabel());
-                    resultEntity.setSubtitle(matchedResource.getResource().getInstanceOf());
+                    resultEntity.setSubtitle(kgFetcher.fetchLabel(matchedResource.getResource().getInstanceOf()));
                     resultEntity.setLink(matchedResource.getResource().getIri());
                     if (matchedResource.getResource().getClassTree() != null) {
                         if (matchedResource.getResource().getClassTree().contains("DatatypeProperty"))
