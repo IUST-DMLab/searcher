@@ -37,10 +37,14 @@ public class Searcher {
                     resultEntity.setTitle(matchedResource.getResource().getLabel());
                     resultEntity.setSubtitle(kgFetcher.fetchLabel(matchedResource.getResource().getInstanceOf()));
                     resultEntity.setLink(matchedResource.getResource().getIri());
-                    if (matchedResource.getResource().getClassTree() != null) {
-                        if (matchedResource.getResource().getClassTree().contains("DatatypeProperty"))
+                    String wikiPage = kgFetcher.fetchWikiPage(matchedResource.getResource().getIri());
+                    if (wikiPage != null)
+                        resultEntity.setLink(wikiPage);
+
+                    if (matchedResource.getResource().getType() != null) {
+                        if (matchedResource.getResource().getType().equals("DatatypeProperty"))
                             resultEntity.setDescription("رابطه (خصیصه)");
-                        if (matchedResource.getResource().getClassTree().contains("Resource"))
+                        if (matchedResource.getResource().getType().equals("Resource"))
                             resultEntity.setDescription("موجودیت");
                     }
                     if (matchedResource.getResource().getLabel() == null) {

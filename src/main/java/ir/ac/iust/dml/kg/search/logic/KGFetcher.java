@@ -45,7 +45,28 @@ public class KGFetcher {
             if (results.hasNext())
                 resultText += "، ";
         }
-        resultText.replaceAll("@fa", "");
+        resultText = resultText.replaceAll("@fa", "");
+        return resultText;
+    }
+
+    public String fetchWikiPage(String uri) {
+        String queryString =
+                "SELECT ?o \n" +
+                        "WHERE {\n" +
+                        "<" +
+                        uri +
+                        "> <http://fkg.iust.ac.ir/ontology/wikipageredirects> ?o. \n" +
+                        "}";
+        final Query query = QueryFactory.create(queryString);
+        final QueryExecution qexec = QueryExecutionFactory.create(query, model);
+        final ResultSet results = qexec.execSelect();
+
+        String resultText = null;
+        if (results.hasNext()) {
+            final QuerySolution binding = results.nextSolution();
+            final RDFNode o = binding.get("o");
+            resultText = o.toString();
+        }
         return resultText;
     }
 }
