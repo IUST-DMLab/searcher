@@ -42,10 +42,14 @@ public class Searcher {
                         resultEntity.setLink(wikiPage);
 
                     if (matchedResource.getResource().getType() != null) {
+                        String type = "";
                         if (matchedResource.getResource().getType().equals("DatatypeProperty"))
-                            resultEntity.setDescription("رابطه (خصیصه)");
+                            type = " (گزاره)";
                         if (matchedResource.getResource().getType().equals("Resource"))
-                            resultEntity.setDescription("موجودیت");
+                            type = " (موجودیت)";
+                        if (resultEntity.getSubtitle() == null)
+                            resultEntity.setSubtitle(type);
+                        else resultEntity.setSubtitle(resultEntity.getSubtitle() + type);
                     }
                     if (matchedResource.getResource().getLabel() == null) {
                         resultEntity.setTitle(extractTitleFromIri(matchedResource.getResource().getIri()));
