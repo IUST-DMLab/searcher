@@ -3,7 +3,7 @@ package ir.ac.iust.dml.kg.search.logic;
 import ir.ac.iust.dml.kg.resource.extractor.IResourceExtractor;
 import ir.ac.iust.dml.kg.resource.extractor.IResourceReader;
 import ir.ac.iust.dml.kg.resource.extractor.MatchedResource;
-import ir.ac.iust.dml.kg.resource.extractor.readers.ResourceReaderFromKGStoreV1Service;
+import ir.ac.iust.dml.kg.resource.extractor.ResourceCache;
 import ir.ac.iust.dml.kg.resource.extractor.tree.TreeResourceExtractor;
 import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.SearchResult;
@@ -76,15 +76,18 @@ public class Searcher {
         }*/
     }
 
-
     private String extractTitleFromIri(String iri) {
         return iri.substring(iri.lastIndexOf("/") + 1).replace('_', ' ');
     }
 
     private static IResourceExtractor setupNewExtractor() throws Exception {
         IResourceExtractor extractor = new TreeResourceExtractor();
-        try (IResourceReader reader = new ResourceReaderFromKGStoreV1Service("http://194.225.227.161:8091/")) {
-            extractor.setup(reader, 1000000);
+        try (IResourceReader reader = new ResourceCache("cache", true)) {
+            System.err.println("Loading resource-extractor from cache...");
+            long t1 = System.currentTimeMillis();
+            extractor.setup(reader, 10000);
+            //extractor.setup(reader, 1000000);
+            System.err.printf("resource-extractor loaded from cache in %,d miliseconds\n", (System.currentTimeMillis() - t1));
         }
         return extractor;
     }

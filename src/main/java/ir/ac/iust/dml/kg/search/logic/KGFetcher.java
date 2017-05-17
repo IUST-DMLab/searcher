@@ -15,13 +15,16 @@ public class KGFetcher {
     private Model model = null;
 
     public KGFetcher() {
+        System.err.println("Loading KGFetcher...");
+        long t1 = System.currentTimeMillis();
         final String virtuosoServer = ConfigReader.INSTANCE.getString("virtuoso.address",
                 "localhost:1111");
         final String virtuosoUser = ConfigReader.INSTANCE.getString("virtuoso.user", "dba");
         final String virtuosoPass = ConfigReader.INSTANCE.getString("virtuoso.password", "fkgVIRTUOSO2017");
-        graph = new VirtGraph("http://localhost:8890/knowledgeGraphV2",
+        graph = new VirtGraph("http://fkg.iust.ac.ir/",
                 "jdbc:virtuoso://" + virtuosoServer, virtuosoUser, virtuosoPass);
         model = ModelFactory.createModelForGraph(graph);
+        System.err.printf("KGFetcher loaded in %,d ms", (System.currentTimeMillis() - t1));
     }
 
     public String fetchLabel(String uri) {
