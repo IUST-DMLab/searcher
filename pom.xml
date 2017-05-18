@@ -38,7 +38,6 @@
             <version>1.1.7</version>
         </dependency>
 
-
         <dependency>
             <groupId>ir.ac.iust.dml.kg</groupId>
             <!--<artifactId>entity-extractor</artifactId>
@@ -64,6 +63,11 @@
                 <!--</exclusion>-->
             </exclusions>
         </dependency>
+	<dependency>
+	      <groupId>ir.ac.iust.dml.kg</groupId>
+	      <artifactId>utils</artifactId>
+	      <version>0.2.0</version>
+	</dependency>
         <dependency>
             <groupId>ir.ac.iust.dml.kg</groupId>
             <artifactId>PersianNormalizer</artifactId>
