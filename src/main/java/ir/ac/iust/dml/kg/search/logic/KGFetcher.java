@@ -7,6 +7,9 @@ import com.hp.hpl.jena.rdf.model.RDFNode;
 import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
 import ir.ac.iust.dml.kg.virtuoso.jena.driver.VirtGraph;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 /**
  * Created by ali on 4/16/17.
  */
@@ -74,4 +77,45 @@ public class KGFetcher {
         }
         return resultText;
     }
+
+    /**
+     * Returns the (uri,label) pairs for each object statisfying subj-property-object-
+     *
+     * @param subjectUri
+     * @param propertyUri
+     * @return
+     */
+    public Map<String, String> fetchSubjPropObjQuery(String subjectUri, String propertyUri) {
+        Map<String, String> matchedObjectLabels = new TreeMap<String, String>();
+        String queryString =
+                "SELECT ?o ?l " +
+                        "WHERE {\n" +
+                        "<" +
+                        subjectUri +
+                        "> <" + propertyUri + "> ?o. \n" +
+                        "?o <http://www.w3.org/2000/01/rdf-schema#label> ?l\n" +
+                        //"FILTER (lang(?o) = \"fa\")" +
+                        "}";
+        final Query query = QueryFactory.create(queryString);
+        final QueryExecution qexec = QueryExecutionFactory.create(query, model);
+        final ResultSet results = qexec.execSelect();
+
+        String resultText = "";
+        while (results.hasNext()) {
+            final QuerySolution binding = results.nextSolution();
+            final RDFNode o = binding.get("o");
+            String objectUri = o.toString();
+            final RDFNode l = binding.get("l");
+            String objectLabel = l.toString().replaceAll("@fa", "");
+            matchedObjectLabels.put(objectUri, objectLabel);
+
+        }
+        return matchedObjectLabels;
+    }
+
+
+    /*SELECT  ?o
+WHERE { <http://fkg.iust.ac.ir/resources/کیمیا_(مجموعه_تلویزیونی)> <http://fkg.iust.ac.ir/ontology/starring> ?o. }
+*/
+
 }
