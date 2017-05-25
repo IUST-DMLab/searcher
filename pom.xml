@@ -6,7 +6,7 @@
 
     <groupId>ir.ac.iust.dml.kg.search</groupId>
     <artifactId>searcher</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
     <name>Search core engine</name>
 
 

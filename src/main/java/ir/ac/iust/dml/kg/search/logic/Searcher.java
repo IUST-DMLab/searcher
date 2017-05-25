@@ -27,7 +27,7 @@ public class Searcher {
         String queryText = normalizer.normalize(keyword);
         final SearchResult result = new SearchResult();
         try {
-            List<MatchedResource> matchedResources = extractor.search(queryText, true);
+            List<MatchedResource> matchedResources = extractor.search(queryText, false);
 
             //Answering predicate-subject phrases
             try {
