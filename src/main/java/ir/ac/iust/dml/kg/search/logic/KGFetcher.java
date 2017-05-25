@@ -57,7 +57,7 @@ public class KGFetcher {
         }
         resultText = resultText.replaceAll("@fa", "");
         if (resultText.equals(""))
-            return uri;
+            resultText = uri;
 
         if (resultText.contains(KB_PREFIX))
             resultText = resultText.replace(KB_PREFIX, "");
