@@ -26,40 +26,41 @@ public class Searcher {
     public SearchResult search(String keyword) {
         String queryText = normalizer.normalize(keyword);
         final SearchResult result = new SearchResult();
+
+        //Answering predicate-subject phrases
         try {
-            List<MatchedResource> matchedResources = extractor.search(queryText, false);
+            List<MatchedResource> matchedResourcesUnfiltered = extractor.search(queryText, false);
 
-            //Answering predicate-subject phrases
-            try {
-                List<MatchedResource> properties = matchedResources.stream()
-                        .filter(mR -> mR.getResource() != null)
-                        .filter(mR -> mR.getResource().getType() != null)
-                        .filter(mR -> mR.getResource().getType().toString().contains("Property"))
-                        .collect(Collectors.toList());
-                List<MatchedResource> entities = matchedResources.stream()
-                        .filter(mR -> !properties.contains(mR))
-                        .collect(Collectors.toList());
+            List<MatchedResource> properties = matchedResourcesUnfiltered.stream()
+                    .filter(mR -> mR.getResource() != null)
+                    .filter(mR -> mR.getResource().getType() != null)
+                    .filter(mR -> mR.getResource().getType().toString().contains("Property"))
+                    .collect(Collectors.toList());
+            List<MatchedResource> entities = matchedResourcesUnfiltered.stream()
+                    .filter(mR -> !properties.contains(mR))
+                    .collect(Collectors.toList());
 
-                for (MatchedResource subjectMR : entities) {
-                    for (MatchedResource propertyMR : properties) {
-                        System.out.println("Trying combinatios for " + subjectMR.getResource().getIri() + "\t & \t" + propertyMR.getResource().getIri());
-                        Map<String, String> objectLables = kgFetcher.fetchSubjPropObjQuery(subjectMR.getResource().getIri(), propertyMR.getResource().getIri());
-                        for (Map.Entry<String, String> olEntry : objectLables.entrySet()) {
-                            System.out.printf("Object: %s\t%s\n", olEntry.getKey(), olEntry.getValue());
-                            ResultEntity resultEntity = new ResultEntity();
-                            resultEntity.setLink(olEntry.getKey());
-                            resultEntity.setTitle(olEntry.getValue());
-                            resultEntity.setDescription("نتیجه‌ی گزاره‌ای");
-                            result.getEntities().add(resultEntity);
-                        }
+            for (MatchedResource subjectMR : entities) {
+                for (MatchedResource propertyMR : properties) {
+                    System.out.println("Trying combinatios for " + subjectMR.getResource().getIri() + "\t & \t" + propertyMR.getResource().getIri());
+                    Map<String, String> objectLables = kgFetcher.fetchSubjPropObjQuery(subjectMR.getResource().getIri(), propertyMR.getResource().getIri());
+                    for (Map.Entry<String, String> olEntry : objectLables.entrySet()) {
+                        System.out.printf("Object: %s\t%s\n", olEntry.getKey(), olEntry.getValue());
+                        ResultEntity resultEntity = new ResultEntity();
+                        resultEntity.setLink(olEntry.getKey());
+                        resultEntity.setTitle(olEntry.getValue());
+                        resultEntity.setDescription("نتیجه‌ی گزاره‌ای");
+                        result.getEntities().add(resultEntity);
                     }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-
-            //Output individual entities
+        //Output individual entities
+        try {
+            List<MatchedResource> matchedResources = extractor.search(queryText, true);
             for (MatchedResource matchedResource : matchedResources) {
                 try {
                     ResultEntity resultEntity = matchedResourceToResultEntity(matchedResource);
