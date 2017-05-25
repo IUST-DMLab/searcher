@@ -114,7 +114,12 @@ public class KGFetcher {
             final RDFNode o = binding.get("o");
             String objectUri = o.toString();
             //final RDFNode l = binding.get("l");
-            String objectLabel = fetchLabel(objectUri, false);
+            String objectLabel = objectUri;
+            try {
+                objectLabel = fetchLabel(objectUri, false);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             matchedObjectLabels.put(objectUri, objectLabel);
 
         }
