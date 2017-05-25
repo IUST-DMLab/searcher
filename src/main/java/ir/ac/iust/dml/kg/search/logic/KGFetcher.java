@@ -14,6 +14,7 @@ import java.util.TreeMap;
  * Created by ali on 4/16/17.
  */
 public class KGFetcher {
+    private static final String KB_PREFIX = "http://fkg.iust.ac.ir/resources/";
     private VirtGraph graph = null;
     private Model model = null;
 
@@ -30,15 +31,18 @@ public class KGFetcher {
         System.err.printf("KGFetcher loaded in %,d ms", (System.currentTimeMillis() - t1));
     }
 
-    public String fetchLabel(String uri) {
+    public String fetchLabel(String uri, boolean filterNonPersian) {
         String queryString =
                 "SELECT ?o \n" +
                         "WHERE {\n" +
                         "<" +
                         uri +
-                        "> <http://www.w3.org/2000/01/rdf-schema#label> ?o. \n" +
-                        "FILTER (lang(?o) = \"fa\")" +
-                        "}";
+                        "> <http://www.w3.org/2000/01/rdf-schema#label> ?o. \n";
+        if (filterNonPersian)
+            queryString += "FILTER (lang(?o) = \"fa\")";
+
+        queryString += "}";
+
         final Query query = QueryFactory.create(queryString);
         final QueryExecution qexec = QueryExecutionFactory.create(query, model);
         final ResultSet results = qexec.execSelect();
@@ -54,6 +58,10 @@ public class KGFetcher {
         resultText = resultText.replaceAll("@fa", "");
         if (resultText.equals(""))
             return uri;
+
+        if (resultText.contains(KB_PREFIX))
+            resultText = resultText.replace(KB_PREFIX, " [بدون برچسب]");
+
         return resultText;
     }
 
@@ -88,12 +96,12 @@ public class KGFetcher {
     public Map<String, String> fetchSubjPropObjQuery(String subjectUri, String propertyUri) {
         Map<String, String> matchedObjectLabels = new TreeMap<String, String>();
         String queryString =
-                "SELECT ?o ?l " +
+                "SELECT ?o " + //?l " +
                         "WHERE {\n" +
                         "<" +
                         subjectUri +
                         "> <" + propertyUri + "> ?o. \n" +
-                        "?o <http://www.w3.org/2000/01/rdf-schema#label> ?l\n" +
+                        //"?o <http://www.w3.org/2000/01/rdf-schema#label> ?l\n" +
                         //"FILTER (lang(?o) = \"fa\")" +
                         "}";
         final Query query = QueryFactory.create(queryString);
@@ -105,8 +113,8 @@ public class KGFetcher {
             final QuerySolution binding = results.nextSolution();
             final RDFNode o = binding.get("o");
             String objectUri = o.toString();
-            final RDFNode l = binding.get("l");
-            String objectLabel = l.toString().replaceAll("@fa", "");
+            //final RDFNode l = binding.get("l");
+            String objectLabel = fetchLabel(objectUri, false);
             matchedObjectLabels.put(objectUri, objectLabel);
 
         }

@@ -87,7 +87,7 @@ public class Searcher {
     private ResultEntity matchedResourceToResultEntity(MatchedResource matchedResource) {
         ResultEntity resultEntity = new ResultEntity();
         resultEntity.setTitle(matchedResource.getResource().getLabel());
-        resultEntity.setSubtitle(kgFetcher.fetchLabel(matchedResource.getResource().getInstanceOf()));
+        resultEntity.setSubtitle(kgFetcher.fetchLabel(matchedResource.getResource().getInstanceOf(), true));
         resultEntity.setLink(matchedResource.getResource().getIri());
                     /*String wikiPage = kgFetcher.fetchWikiPage(matchedResource.getResource().getIri());
                     if (wikiPage != null)
