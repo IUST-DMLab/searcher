@@ -42,15 +42,19 @@ public class Searcher {
 
             for (MatchedResource subjectMR : entities) {
                 for (MatchedResource propertyMR : properties) {
-                    System.out.println("Trying combinatios for " + subjectMR.getResource().getIri() + "\t & \t" + propertyMR.getResource().getIri());
-                    Map<String, String> objectLables = kgFetcher.fetchSubjPropObjQuery(subjectMR.getResource().getIri(), propertyMR.getResource().getIri());
-                    for (Map.Entry<String, String> olEntry : objectLables.entrySet()) {
-                        System.out.printf("Object: %s\t%s\n", olEntry.getKey(), olEntry.getValue());
-                        ResultEntity resultEntity = new ResultEntity();
-                        resultEntity.setLink(olEntry.getKey());
-                        resultEntity.setTitle(olEntry.getValue());
-                        resultEntity.setDescription("نتیجه‌ی گزاره‌ای");
-                        result.getEntities().add(resultEntity);
+                    try {
+                        System.out.println("Trying combinatios for " + subjectMR.getResource().getIri() + "\t & \t" + propertyMR.getResource().getIri());
+                        Map<String, String> objectLables = kgFetcher.fetchSubjPropObjQuery(subjectMR.getResource().getIri(), propertyMR.getResource().getIri());
+                        for (Map.Entry<String, String> olEntry : objectLables.entrySet()) {
+                            System.out.printf("Object: %s\t%s\n", olEntry.getKey(), olEntry.getValue());
+                            ResultEntity resultEntity = new ResultEntity();
+                            resultEntity.setLink(olEntry.getKey());
+                            resultEntity.setTitle(olEntry.getValue());
+                            resultEntity.setDescription("نتیجه‌ی گزاره‌ای");
+                            result.getEntities().add(resultEntity);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
             }
