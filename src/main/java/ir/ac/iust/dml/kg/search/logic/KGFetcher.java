@@ -60,7 +60,7 @@ public class KGFetcher {
             resultText = uri;
 
         if (resultText.contains(KB_PREFIX))
-            resultText = resultText.replace(KB_PREFIX, "");
+            resultText = resultText.replace(KB_PREFIX, "").replace('_', ' ');
 
         return resultText;
     }

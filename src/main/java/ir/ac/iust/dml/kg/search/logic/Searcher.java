@@ -113,7 +113,7 @@ public class Searcher {
         return resultEntity;
     }
 
-    private String extractTitleFromIri(String iri) {
+    private static String extractTitleFromIri(String iri) {
         return iri.substring(iri.lastIndexOf("/") + 1).replace('_', ' ');
     }
 
