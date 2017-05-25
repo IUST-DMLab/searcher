@@ -60,7 +60,7 @@ public class KGFetcher {
             return uri;
 
         if (resultText.contains(KB_PREFIX))
-            resultText = resultText.replace(KB_PREFIX, " [بدون برچسب]");
+            resultText = resultText.replace(KB_PREFIX, "");
 
         return resultText;
     }
