@@ -14,7 +14,7 @@ import java.util.TreeMap;
  * Created by ali on 4/16/17.
  */
 public class KGFetcher {
-    private static final String KB_PREFIX = "http://fkg.iust.ac.ir/resources/";
+    private static final String KB_PREFIX = "http://fkg.iust.ac.ir/resource/";
     private VirtGraph graph = null;
     private Model model = null;
 
@@ -25,7 +25,7 @@ public class KGFetcher {
                 "localhost:1111");
         final String virtuosoUser = ConfigReader.INSTANCE.getString("virtuoso.user", "dba");
         final String virtuosoPass = ConfigReader.INSTANCE.getString("virtuoso.password", "fkgVIRTUOSO2017");
-        graph = new VirtGraph("http://fkg.iust.ac.ir/",
+        graph = new VirtGraph("http://fkg.iust.ac.ir/new",
                 "jdbc:virtuoso://" + virtuosoServer, virtuosoUser, virtuosoPass);
         model = ModelFactory.createModelForGraph(graph);
         System.err.printf("KGFetcher loaded in %,d ms", (System.currentTimeMillis() - t1));
@@ -73,6 +73,7 @@ public class KGFetcher {
                         uri +
                         "> <http://fkg.iust.ac.ir/ontology/wikipageredirects> ?o. \n" +
                         "}";
+
         final Query query = QueryFactory.create(queryString);
         final QueryExecution qexec = QueryExecutionFactory.create(query, model);
         final ResultSet results = qexec.execSelect();

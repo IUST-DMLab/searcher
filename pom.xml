@@ -6,7 +6,7 @@
 
     <groupId>ir.ac.iust.dml.kg.search</groupId>
     <artifactId>searcher</artifactId>
-    <version>0.3.3</version>
+    <version>0.3.4</version>
     <name>Search core engine</name>
 
 
@@ -14,7 +14,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <resource.extractor.version>1.2.6</resource.extractor.version>
+        <resource.extractor.version>1.2.7</resource.extractor.version>
     </properties>
 
     <build>
