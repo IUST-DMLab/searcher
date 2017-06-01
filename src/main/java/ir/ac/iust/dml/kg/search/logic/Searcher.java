@@ -28,6 +28,7 @@ public class Searcher {
         final SearchResult result = new SearchResult();
 
         //Answering predicate-subject phrases
+        boolean haveAnyPatternAnswer = false;
         try {
             List<MatchedResource> matchedResourcesUnfiltered = extractor.search(queryText, false);
 
@@ -52,6 +53,7 @@ public class Searcher {
                             resultEntity.setTitle(olEntry.getValue());
                             resultEntity.setDescription("نتیجه‌ی گزاره‌ای");
                             result.getEntities().add(resultEntity);
+                            haveAnyPatternAnswer = true;
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -64,7 +66,8 @@ public class Searcher {
 
         //Output individual entities
         try {
-            List<MatchedResource> matchedResources = extractor.search(queryText, true);
+            boolean shouldRemoveSubset = haveAnyPatternAnswer;
+            List<MatchedResource> matchedResources = extractor.search(queryText, shouldRemoveSubset);
             for (MatchedResource matchedResource : matchedResources) {
                 try {
                     ResultEntity resultEntity = matchedResourceToResultEntity(matchedResource);
