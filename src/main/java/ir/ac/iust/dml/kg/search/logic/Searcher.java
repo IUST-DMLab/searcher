@@ -1,13 +1,11 @@
 package ir.ac.iust.dml.kg.search.logic;
 
-import ir.ac.iust.dml.kg.resource.extractor.IResourceExtractor;
-import ir.ac.iust.dml.kg.resource.extractor.IResourceReader;
-import ir.ac.iust.dml.kg.resource.extractor.MatchedResource;
-import ir.ac.iust.dml.kg.resource.extractor.ResourceCache;
+import ir.ac.iust.dml.kg.resource.extractor.*;
 import ir.ac.iust.dml.kg.resource.extractor.tree.TreeResourceExtractor;
 import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.SearchResult;
 import knowledgegraph.normalizer.PersianCharNormalizer;
+import org.apache.logging.log4j.util.Strings;
 
 import java.util.List;
 import java.util.Map;
@@ -32,20 +30,38 @@ public class Searcher {
         try {
             List<MatchedResource> matchedResourcesUnfiltered = extractor.search(queryText, false);
 
-            List<MatchedResource> properties = matchedResourcesUnfiltered.stream()
+            List<Resource> properties = matchedResourcesUnfiltered.stream()
                     .filter(mR -> mR.getResource() != null)
-                    .filter(mR -> mR.getResource().getType() != null)
-                    .filter(mR -> mR.getResource().getType().toString().contains("Property"))
-                    .collect(Collectors.toList());
-            List<MatchedResource> entities = matchedResourcesUnfiltered.stream()
-                    .filter(mR -> !properties.contains(mR))
+                    .map(mR -> mR.getResource())
+                    .filter(r -> r.getType() != null)
+                    .filter(r -> r.getType().toString().contains("Property"))
                     .collect(Collectors.toList());
 
-            for (MatchedResource subjectMR : entities) {
-                for (MatchedResource propertyMR : properties) {
+            List<Resource> disambiguatedProperties = matchedResourcesUnfiltered.stream()
+                    .filter(mR -> mR.getAmbiguities() != null && mR.getAmbiguities().size() > 0)
+                    .flatMap(mR -> mR.getAmbiguities().stream())
+                    .map(r -> {
+                        if (Strings.isBlank(r.getLabel())) r.setLabel("بدون برچسب");
+                        else r.setLabel(r.getLabel() + " (ابهام‌زدایی‌شده)");
+                        return r;
+                    })
+                    .collect(Collectors.toList());
+
+            properties.addAll(disambiguatedProperties);
+            List<Resource> finalProperties = properties.stream().distinct().collect(Collectors.toList());
+
+            List<Resource> entities = matchedResourcesUnfiltered.stream()
+                    .filter(mR -> mR.getResource() != null)
+                    .map(mR -> mR.getResource())
+                    .filter(r -> !finalProperties.contains(r))
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            for (Resource subjectR : entities) {
+                for (Resource propertyR : finalProperties) {
                     try {
-                        System.out.println("Trying combinatios for " + subjectMR.getResource().getIri() + "\t & \t" + propertyMR.getResource().getIri());
-                        Map<String, String> objectLables = kgFetcher.fetchSubjPropObjQuery(subjectMR.getResource().getIri(), propertyMR.getResource().getIri());
+                        System.out.println("Trying combinatios for " + subjectR.getIri() + "\t & \t" + propertyR.getIri());
+                        Map<String, String> objectLables = kgFetcher.fetchSubjPropObjQuery(subjectR.getIri(), propertyR.getIri());
                         for (Map.Entry<String, String> olEntry : objectLables.entrySet()) {
                             System.out.printf("Object: %s\t%s\n", olEntry.getKey(), olEntry.getValue());
                             ResultEntity resultEntity = new ResultEntity();
