@@ -1,11 +1,11 @@
 package ir.ac.iust.dml.kg.search.logic;
 
+import com.google.common.base.Strings;
 import ir.ac.iust.dml.kg.resource.extractor.*;
 import ir.ac.iust.dml.kg.resource.extractor.tree.TreeResourceExtractor;
 import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.SearchResult;
 import knowledgegraph.normalizer.PersianCharNormalizer;
-import org.apache.logging.log4j.util.Strings;
 
 import java.util.List;
 import java.util.Map;
@@ -41,7 +41,7 @@ public class Searcher {
                     .filter(mR -> mR.getAmbiguities() != null && mR.getAmbiguities().size() > 0)
                     .flatMap(mR -> mR.getAmbiguities().stream())
                     .map(r -> {
-                        if (Strings.isBlank(r.getLabel())) r.setLabel("بدون برچسب");
+                        if (Strings.isNullOrEmpty(r.getLabel())) r.setLabel("بدون برچسب");
                         else r.setLabel(r.getLabel() + " (ابهام‌زدایی‌شده)");
                         return r;
                     })
