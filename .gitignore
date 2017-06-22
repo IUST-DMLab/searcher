@@ -1,6 +1,6 @@
 all.log*
 *.log
-data/
+/data/
 results/
 cache/
 

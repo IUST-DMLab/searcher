@@ -6,7 +6,7 @@
 
     <groupId>ir.ac.iust.dml.kg.search</groupId>
     <artifactId>searcher</artifactId>
-    <version>0.3.7</version>
+    <version>0.3.8</version>
     <name>Search core engine</name>
 
     <properties>
@@ -26,10 +26,23 @@
                     <target>${maven.compiler.target}</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.12.4</version>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>ir.ac.iust.dml.kg</groupId>
+            <artifactId>utils</artifactId>
+            <version>0.2.1</version>
+        </dependency>
         <!-- Logging with SLF4J & LogBack -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -65,11 +78,6 @@
         </dependency>
         <dependency>
             <groupId>ir.ac.iust.dml.kg</groupId>
-            <artifactId>utils</artifactId>
-            <version>0.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>ir.ac.iust.dml.kg</groupId>
             <artifactId>PersianNormalizer</artifactId>
             <version>1.0.0</version>
         </dependency>
@@ -88,12 +96,18 @@
         <dependency>
             <groupId>ir.ac.iust.dml.kg.vituoso</groupId>
             <artifactId>connector</artifactId>
-            <version>0.1.0</version>
+            <version>0.2.0</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>20.0</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
