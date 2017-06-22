@@ -37,7 +37,7 @@ public class Searcher {
                     .filter(r -> r.getType().toString().contains("Property"))
                     .collect(Collectors.toList());
 
-            List<Resource> disambiguatedProperties = matchedResourcesUnfiltered.stream()
+            List<Resource> disambiguatedResources = matchedResourcesUnfiltered.stream()
                     .filter(mR -> mR.getAmbiguities() != null && mR.getAmbiguities().size() > 0)
                     .flatMap(mR -> mR.getAmbiguities().stream())
                     .map(r -> {
@@ -47,17 +47,28 @@ public class Searcher {
                     })
                     .collect(Collectors.toList());
 
+
+            List<Resource> disambiguatedProperties = disambiguatedResources.stream()
+                    .filter(r -> r.getType() != null)
+                    .filter(r -> r.getType().toString().contains("Property"))
+                    .collect(Collectors.toList());
+
+
             properties.addAll(disambiguatedProperties);
             List<Resource> finalProperties = properties.stream().distinct().collect(Collectors.toList());
 
             List<Resource> entities = matchedResourcesUnfiltered.stream()
                     .filter(mR -> mR.getResource() != null)
                     .map(mR -> mR.getResource())
+                    .collect(Collectors.toList());
+
+            entities.addAll(disambiguatedResources);
+            List<Resource> finalEntities = entities.stream()
                     .filter(r -> !finalProperties.contains(r))
                     .distinct()
                     .collect(Collectors.toList());
 
-            for (Resource subjectR : entities) {
+            for (Resource subjectR : finalEntities) {
                 for (Resource propertyR : finalProperties) {
                     try {
                         System.out.println("Trying combinatios for " + subjectR.getIri() + "\t & \t" + propertyR.getIri());
@@ -66,8 +77,12 @@ public class Searcher {
                             System.out.printf("Object: %s\t%s\n", olEntry.getKey(), olEntry.getValue());
                             ResultEntity resultEntity = new ResultEntity();
                             resultEntity.setLink(olEntry.getKey());
+                            resultEntity.setReferenceUri(subjectR.getIri());
                             resultEntity.setTitle(olEntry.getValue());
                             resultEntity.setDescription("نتیجه‌ی گزاره‌ای");
+                            resultEntity.setResultType(ResultEntity.ResultType.RelationalResult);
+                            if (!(Strings.isNullOrEmpty(subjectR.getLabel()) || Strings.isNullOrEmpty(propertyR.getLabel())))
+                                resultEntity.setDescription(resultEntity.getDescription() + ": [" + subjectR.getLabel() + "] / [" + propertyR.getLabel() + "]");
                             result.getEntities().add(resultEntity);
                             haveAnyPatternAnswer = true;
                         }
@@ -118,10 +133,14 @@ public class Searcher {
 
         if (matchedResource.getResource().getType() != null) {
             String type = "Type: " + matchedResource.getResource().getType().toString();
-            if (matchedResource.getResource().getType().toString().contains("Property"))
-                type = " (گزاره)";
-            if (matchedResource.getResource().getType().toString().contains("Resource"))
+            if (matchedResource.getResource().getType() == ResourceType.Property) {
+                type = " (خصیصه)";
+                resultEntity.setResultType(ResultEntity.ResultType.Property);
+            }
+            if (matchedResource.getResource().getType() == ResourceType.Entity) {
                 type = " (موجودیت)";
+                resultEntity.setResultType(ResultEntity.ResultType.Entity);
+            }
             if (resultEntity.getSubtitle() == null && !type.equals(""))
                 resultEntity.setSubtitle(type);
             else resultEntity.setSubtitle(resultEntity.getSubtitle() + type);

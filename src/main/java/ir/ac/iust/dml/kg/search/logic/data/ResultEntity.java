@@ -6,12 +6,27 @@ import java.util.List;
 import java.util.Map;
 
 public class ResultEntity {
+
+    public enum ResultType {Other,Property,Entity,Class,RelationalResult}
     private String link;
     private String title;
     private String subtitle;
     private String description;
+    private String referenceUri;
     private List<String> photoUrls = new ArrayList<String>();
     private Map<String, DataValues> keyValues = new HashMap<String, DataValues>();
+
+    public double getConfidence() { return confidence; }
+
+    public void setConfidence(double confidence) { this.confidence = confidence; }
+
+    private double confidence = 1;
+
+    public ResultType getResultType() { return resultType; }
+
+    public void setResultType(ResultType resultType) { this.resultType = resultType; }
+
+    private ResultType resultType;
 
     public String getLink() {
         return link;
@@ -60,4 +75,8 @@ public class ResultEntity {
     public void setKeyValues(Map<String, DataValues> keyValues) {
         this.keyValues = keyValues;
     }
+
+    public String getReferenceUri() {return referenceUri;}
+
+    public void setReferenceUri(String referenceUri) {this.referenceUri = referenceUri;}
 }
