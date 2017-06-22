@@ -16,7 +16,21 @@ public class Searcher {
     private final KGFetcher kgFetcher;
     private static final PersianCharNormalizer normalizer = new PersianCharNormalizer();
 
+
+    private static String semaphore = "Semaphore";
+    private static Searcher instance;
+
+    public static Searcher getInstance() throws Exception {
+        synchronized (semaphore) {
+            System.out.println("getting instance of Searcher");
+            if (instance != null) return instance;
+            System.out.println("creating instance of Searcher");
+            return new Searcher();
+        }
+    }
+
     public Searcher() throws Exception {
+        instance = this;
         extractor = setupNewExtractor();
         kgFetcher = new KGFetcher();
     }

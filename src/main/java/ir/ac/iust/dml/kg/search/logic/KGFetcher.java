@@ -26,7 +26,7 @@ public class KGFetcher {
         final String virtuosoPass = ConfigReader.INSTANCE.getString("virtuoso.password", "fkgVIRTUOSO2017");
         graph = new VirtGraph("http://fkg.iust.ac.ir/new","jdbc:virtuoso://" + virtuosoServer, virtuosoUser, virtuosoPass);
         model = ModelFactory.createModelForGraph(graph);
-        System.err.printf("KGFetcher loaded in %,d ms", (System.currentTimeMillis() - t1));
+        System.err.printf("KGFetcher loaded in %,d ms\n", (System.currentTimeMillis() - t1));
     }
 
     public String fetchLabel(String uri, boolean filterNonPersian) {
