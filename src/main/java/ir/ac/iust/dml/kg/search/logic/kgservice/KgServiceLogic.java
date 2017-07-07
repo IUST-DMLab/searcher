@@ -80,7 +80,9 @@ public class KgServiceLogic {
             if (triple.getObject().getType() == VirtuosoTripleType.Resource)
                 value.setUrl(triple.getObject().getValue().toString());
             else value.setContent(triple.getObject().getValue().toString());
-            entityData.getProperties().add(
+            final PropertyData data = entityData.getPropertyMap().get(triple.getPredicate());
+            if(data != null) data.getPropValue().add(value);
+            else entityData.getPropertyMap().put(triple.getPredicate(),
                     new PropertyData(triple.getPredicate(), predicateLabel, value));
         }
         return entityData;

@@ -54,7 +54,8 @@ class KgServiceLogicTest {
             assert p.getPropUrl() != null;
             assert p.getPropLabel() != null;
             assert p.getPropValue() != null;
-            assert p.getPropValue().getContent() != null || p.getPropValue().getUrl() != null;
+            assert !p.getPropValue().isEmpty();
+            assert p.getPropValue().get(0).getContent() != null || p.getPropValue().get(0).getUrl() != null;
         });
     }
 

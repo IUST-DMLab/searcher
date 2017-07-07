@@ -1,17 +1,26 @@
 package ir.ac.iust.dml.kg.search.logic.kgservice.data;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class PropertyData {
     private String propUrl;
     private String propLabel;
-    private PropertyValue propValue;
+    private List<PropertyValue> propValue = new ArrayList<>();
 
     public PropertyData() {
     }
 
-    public PropertyData(String propUrl, String propLabel, PropertyValue propValue) {
+    public PropertyData(String propUrl, String propLabel) {
         this.propUrl = propUrl;
         this.propLabel = propLabel;
-        this.propValue = propValue;
+    }
+
+    public PropertyData(String propUrl, String propLabel, PropertyValue ... firstValue) {
+        this.propUrl = propUrl;
+        this.propLabel = propLabel;
+        Collections.addAll(propValue, firstValue);
     }
 
     public String getPropUrl() {
@@ -30,11 +39,11 @@ public class PropertyData {
         this.propLabel = propLabel;
     }
 
-    public PropertyValue getPropValue() {
+    public List<PropertyValue> getPropValue() {
         return propValue;
     }
 
-    public void setPropValue(PropertyValue propValue) {
+    public void setPropValue(List<PropertyValue> propValue) {
         this.propValue = propValue;
     }
 }
