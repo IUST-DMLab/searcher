@@ -1,11 +1,14 @@
 package ir.ac.iust.dml.kg.search.logic.kgservice.data;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class EntityData {
     private String label;
-    private List<PropertyData> properties = new ArrayList<>();
+    private Map<String, PropertyData> propertyMap = new HashMap<>();
 
     public EntityData() {
     }
@@ -22,11 +25,13 @@ public class EntityData {
         this.label = label;
     }
 
-    public List<PropertyData> getProperties() {
-        return properties;
+    public Collection<PropertyData> getProperties() {
+        return propertyMap.values();
     }
 
-    public void setProperties(List<PropertyData> properties) {
-        this.properties = properties;
+    @JsonIgnore
+    public Map<String, PropertyData> getPropertyMap() {
+        return propertyMap;
     }
+
 }
