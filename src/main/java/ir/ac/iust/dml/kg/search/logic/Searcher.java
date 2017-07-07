@@ -61,12 +61,10 @@ public class Searcher {
                     })
                     .collect(Collectors.toList());
 
-
             List<Resource> disambiguatedProperties = disambiguatedResources.stream()
                     .filter(r -> r.getType() != null)
                     .filter(r -> r.getType().toString().contains("Property"))
                     .collect(Collectors.toList());
-
 
             properties.addAll(disambiguatedProperties);
             List<Resource> finalProperties = properties.stream().distinct().collect(Collectors.toList());
