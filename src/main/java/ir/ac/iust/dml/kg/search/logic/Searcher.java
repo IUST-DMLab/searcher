@@ -7,8 +7,7 @@ import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.SearchResult;
 import knowledgegraph.normalizer.PersianCharNormalizer;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Searcher {
@@ -40,7 +39,6 @@ public class Searcher {
         final SearchResult result = new SearchResult();
 
         //Answering predicate-subject phrases
-        boolean haveAnyPatternAnswer = false;
         try {
             List<MatchedResource> matchedResourcesUnfiltered = extractor.search(queryText, false);
 
@@ -52,6 +50,7 @@ public class Searcher {
                     .collect(Collectors.toList());
 
             List<Resource> disambiguatedResources = matchedResourcesUnfiltered.stream()
+                    .filter(mR -> mR.getSubsetOf() == null) //for entities, remove Subsets
                     .filter(mR -> mR.getAmbiguities() != null && mR.getAmbiguities().size() > 0)
                     .flatMap(mR -> mR.getAmbiguities().stream())
                     .map(r -> {
@@ -70,6 +69,7 @@ public class Searcher {
             List<Resource> finalProperties = properties.stream().distinct().collect(Collectors.toList());
 
             List<Resource> entities = matchedResourcesUnfiltered.stream()
+                    .filter(mR -> mR.getSubsetOf() == null) //for entities, remove Subsets
                     .filter(mR -> mR.getResource() != null)
                     .map(mR -> mR.getResource())
                     .collect(Collectors.toList());
@@ -96,24 +96,21 @@ public class Searcher {
                             if (!(Strings.isNullOrEmpty(subjectR.getLabel()) || Strings.isNullOrEmpty(propertyR.getLabel())))
                                 resultEntity.setDescription(resultEntity.getDescription() + ": [" + subjectR.getLabel() + "] / [" + propertyR.getLabel() + "]");
                             result.getEntities().add(resultEntity);
-                            haveAnyPatternAnswer = true;
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
-        //Output individual entities
-        try {
-            boolean shouldRemoveSubset = haveAnyPatternAnswer;
-            List<MatchedResource> matchedResources = extractor.search(queryText, shouldRemoveSubset);
-            for (MatchedResource matchedResource : matchedResources) {
+            //Output individual entities
+            Set<String> uriOfEntities = new HashSet<String>();
+            for (Resource entity : entities) {
                 try {
-                    ResultEntity resultEntity = matchedResourceToResultEntity(matchedResource);
+                    ResultEntity resultEntity = matchedResourceToResultEntity(entity);
+                    if (uriOfEntities.contains(resultEntity.getLink()))
+                        continue;
+                    uriOfEntities.add(resultEntity.getLink());
                     result.getEntities().add(resultEntity);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -122,34 +119,27 @@ public class Searcher {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return result;
 
-        /*switch (keyword.length() % 3) {
-            case 0:
-                return FakeLogic.oneEntity();
-            case 1:
-                return FakeLogic.oneEntityAndBreadcrumb();
-            default:
-                return FakeLogic.list();
-        }*/
+        return result;
     }
 
-    private ResultEntity matchedResourceToResultEntity(MatchedResource matchedResource) {
+    private ResultEntity matchedResourceToResultEntity(Resource resource) {;
         ResultEntity resultEntity = new ResultEntity();
-        resultEntity.setTitle(matchedResource.getResource().getLabel());
-        resultEntity.setSubtitle(kgFetcher.fetchLabel(matchedResource.getResource().getInstanceOf(), true));
-        resultEntity.setLink(matchedResource.getResource().getIri());
-                    /*String wikiPage = kgFetcher.fetchWikiPage(matchedResource.getResource().getIri());
+        resultEntity.setTitle(resource.getLabel());
+        //resultEntity.setSubtitle(kgFetcher.fetchLabel(resource.getInstanceOf(), true));
+        resultEntity.setSubtitle(extractor.getResourceByIRI(resource.getInstanceOf()).getLabel());
+        resultEntity.setLink(resource.getIri());
+                    /*String wikiPage = kgFetcher.fetchWikiPage(resource.getIri());
                     if (wikiPage != null)
                         resultEntity.setLink(wikiPage);*/
 
-        if (matchedResource.getResource().getType() != null) {
-            String type = "Type: " + matchedResource.getResource().getType().toString();
-            if (matchedResource.getResource().getType() == ResourceType.Property) {
+        if (resource.getType() != null) {
+            String type = "Type: " + resource.getType().toString();
+            if (resource.getType() == ResourceType.Property) {
                 type = " (خصیصه)";
                 resultEntity.setResultType(ResultEntity.ResultType.Property);
             }
-            if (matchedResource.getResource().getType() == ResourceType.Entity) {
+            if (resource.getType() == ResourceType.Entity) {
                 type = " (موجودیت)";
                 resultEntity.setResultType(ResultEntity.ResultType.Entity);
             }
@@ -157,8 +147,8 @@ public class Searcher {
                 resultEntity.setSubtitle(type);
             else resultEntity.setSubtitle(resultEntity.getSubtitle() + type);
         }
-        if (matchedResource.getResource().getLabel() == null) {
-            resultEntity.setTitle(extractTitleFromIri(matchedResource.getResource().getIri()));
+        if (resource.getLabel() == null) {
+            resultEntity.setTitle(extractTitleFromIri(resource.getIri()));
         }
         return resultEntity;
     }
@@ -178,4 +168,8 @@ public class Searcher {
         }
         return extractor;
     }
+    public IResourceExtractor getExtractor() {
+        return extractor;
+    }
+
 }
