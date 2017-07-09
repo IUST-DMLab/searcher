@@ -60,6 +60,14 @@ class KgServiceLogicTest {
     }
 
     @Test
+    void getEntityClasses() {
+        final EntityClasses result = logic.getEntityClasses("http://fkg.iust.ac.ir/resource/تهران");
+        assert result != null;
+        assert result.getMainClass().equals("http://fkg.iust.ac.ir/ontology/City");
+        assert !result.getClassTree().isEmpty();
+    }
+
+    @Test
     void getEntitiesOfClass() {
         final Entities entities = logic.getEntitiesOfClass("http://fkg.iust.ac.ir/ontology/Game");
         assert entities != null;

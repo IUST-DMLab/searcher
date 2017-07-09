@@ -18,6 +18,7 @@ public class KgServiceLogic {
     private final String DOMAIN = PrefixService.INSTANCE.prefixToUri(PrefixService.INSTANCE.getPROPERTY_DOMAIN_URL());
     private final String INSTANCE_OF = PrefixService.INSTANCE.prefixToUri(PrefixService.INSTANCE.getINSTANCE_OF_URL());
     private final String TYPE = PrefixService.INSTANCE.prefixToUri(PrefixService.INSTANCE.getTYPE_URL());
+    private final String TYPE_OF_ALL_RES = PrefixService.INSTANCE.prefixToUri(PrefixService.INSTANCE.getTYPE_OF_ALL_RESOURCES());
 
     public KgServiceLogic() {
         System.err.println("Loading KgServiceLogic ...");
@@ -101,4 +102,20 @@ public class KgServiceLogic {
         return entities;
     }
 
+    public EntityClasses getEntityClasses(String url) {
+        final EntityClasses entityClasses = new EntityClasses();
+        List<VirtuosoTriple> triples = connector.getTriples(url, INSTANCE_OF);
+        if (triples == null || triples.isEmpty() || triples.get(0).getObject() == null
+            || triples.get(0).getObject().getValue() == null) return null;
+        entityClasses.setMainClass(triples.get(0).getObject().getValue().toString());
+        triples = connector.getTriples(url, TYPE);
+        for (VirtuosoTriple triple : triples) {
+            if (triple.getPredicate() == null || triple.getObject() == null || triple.getObject().getValue() == null)
+                continue;
+            final String c = triple.getObject().getValue().toString();
+            if (!c.equals(TYPE_OF_ALL_RES))
+                entityClasses.getClassTree().add(c);
+        }
+        return entityClasses;
+    }
 }
