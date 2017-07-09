@@ -24,7 +24,7 @@ public class KGFetcher {
         final String virtuosoServer = ConfigReader.INSTANCE.getString("virtuoso.address", "localhost:1111");
         final String virtuosoUser = ConfigReader.INSTANCE.getString("virtuoso.user", "dba");
         final String virtuosoPass = ConfigReader.INSTANCE.getString("virtuoso.password", "fkgVIRTUOSO2017");
-        graph = new VirtGraph("http://fkg.iust.ac.ir/new","jdbc:virtuoso://" + virtuosoServer, virtuosoUser, virtuosoPass);
+        graph = new VirtGraph("http://fkg.iust.ac.ir/new", "jdbc:virtuoso://" + virtuosoServer, virtuosoUser, virtuosoPass);
         model = ModelFactory.createModelForGraph(graph);
         System.err.printf("KGFetcher loaded in %,d ms\n", (System.currentTimeMillis() - t1));
     }
@@ -115,11 +115,19 @@ public class KGFetcher {
             //final RDFNode l = binding.get("l");
             String objectLabel = objectUri;
             try {
-                //objectLabel = fetchLabel(objectUri, false);
                 objectLabel = Searcher.getInstance().getExtractor().getResourceByIRI(objectUri).getLabel();
+                if (objectLabel == null || objectLabel.isEmpty()) {
+                    System.err.println("Lable for \"" + objectUri + "\" fetched from resourceExtractor is null/empty, trying DB");
+                    objectLabel = fetchLabel(objectUri, false);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            if (objectLabel == null || objectLabel.isEmpty()) {
+                System.err.println("Lable for \"" + objectUri + "\" fetched from DB and/or resourceExtractor is null/empty, using Iri instead");
+                objectLabel = objectUri;
+            }
+
             matchedObjectLabels.put(objectUri, objectLabel);
 
         }

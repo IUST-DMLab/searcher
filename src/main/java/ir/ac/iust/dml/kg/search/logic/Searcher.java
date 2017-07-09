@@ -66,7 +66,10 @@ public class Searcher {
                     .collect(Collectors.toList());
 
             properties.addAll(disambiguatedProperties);
-            List<Resource> finalProperties = properties.stream().distinct().collect(Collectors.toList());
+            List<Resource> finalProperties = properties.stream()
+                    .filter(r -> r.getIri() != null)
+                    .filter(Util.distinctByKey(r -> r.getIri())) //distinct by Iri
+                    .collect(Collectors.toList());
 
             List<Resource> entities = matchedResourcesUnfiltered.stream()
                     .filter(mR -> mR.getSubsetOf() == null) //for entities, remove Subsets
@@ -77,7 +80,8 @@ public class Searcher {
             entities.addAll(disambiguatedResources);
             List<Resource> finalEntities = entities.stream()
                     .filter(r -> !finalProperties.contains(r))
-                    .distinct()
+                    .filter(r -> r.getIri() != null)
+                    .filter(Util.distinctByKey(r -> r.getIri())) //distinct by Iri
                     .collect(Collectors.toList());
 
             for (Resource subjectR : finalEntities) {
@@ -93,8 +97,9 @@ public class Searcher {
                             resultEntity.setTitle(olEntry.getValue());
                             resultEntity.setDescription("نتیجه‌ی گزاره‌ای");
                             resultEntity.setResultType(ResultEntity.ResultType.RelationalResult);
-                            if (!(Strings.isNullOrEmpty(subjectR.getLabel()) || Strings.isNullOrEmpty(propertyR.getLabel())))
+                            if (!(Strings.isNullOrEmpty(subjectR.getLabel()) || Strings.isNullOrEmpty(propertyR.getLabel()))) {
                                 resultEntity.setDescription(resultEntity.getDescription() + ": [" + subjectR.getLabel() + "] / [" + propertyR.getLabel() + "]");
+                            }
                             result.getEntities().add(resultEntity);
                         }
                     } catch (Exception e) {
@@ -171,5 +176,7 @@ public class Searcher {
     public IResourceExtractor getExtractor() {
         return extractor;
     }
+
+
 
 }
