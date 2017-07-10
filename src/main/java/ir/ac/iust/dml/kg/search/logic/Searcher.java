@@ -15,7 +15,6 @@ public class Searcher {
     private final KGFetcher kgFetcher;
     private static final PersianCharNormalizer normalizer = new PersianCharNormalizer();
 
-
     private static String semaphore = "Semaphore";
     private static Searcher instance;
 
@@ -42,11 +41,34 @@ public class Searcher {
         try {
             List<MatchedResource> matchedResourcesUnfiltered = extractor.search(queryText, false);
 
-            List<Resource> properties = matchedResourcesUnfiltered.stream()
-                    .filter(mR -> mR.getResource() != null)
-                    .map(mR -> mR.getResource())
+
+            List<Resource> allMatchedResources = matchedResourcesUnfiltered.stream()
+                    .flatMap(mR -> {
+                        List<Resource> list = new ArrayList<>();
+                        if (mR.getResource() != null)
+                            list.add(mR.getResource());
+                        if (mR.getAmbiguities() != null)
+                            list.addAll(mR.getAmbiguities());
+
+                        //if there is a detected property, skip all other entities
+                        if(list.stream().anyMatch(r -> r.getType() != null && r.getType().toString().contains("Property")))
+                            return list.stream().filter(r -> r.getType() != null && r.getType().toString().contains("Property"));
+                        return list.stream();
+                    })
+                    .filter(r -> r.getIri() != null)
+                    .filter(Util.distinctByKey(Resource::getIri)) //distinct by Iri
+                    .collect(Collectors.toList());
+
+
+
+            List<Resource> properties = allMatchedResources.stream()
                     .filter(r -> r.getType() != null)
                     .filter(r -> r.getType().toString().contains("Property"))
+                    .collect(Collectors.toList());
+
+            List<Resource> allEntities = allMatchedResources.stream()
+                    .filter(r -> r.getType() != null)
+                    .filter(r -> !properties.contains(r))
                     .collect(Collectors.toList());
 
             List<Resource> disambiguatedResources = matchedResourcesUnfiltered.stream()
@@ -60,32 +82,27 @@ public class Searcher {
                     })
                     .collect(Collectors.toList());
 
-            List<Resource> disambiguatedProperties = disambiguatedResources.stream()
-                    .filter(r -> r.getType() != null)
-                    .filter(r -> r.getType().toString().contains("Property"))
-                    .collect(Collectors.toList());
-
-            properties.addAll(disambiguatedProperties);
-            List<Resource> finalProperties = properties.stream()
-                    .filter(r -> r.getIri() != null)
-                    .filter(Util.distinctByKey(r -> r.getIri())) //distinct by Iri
-                    .collect(Collectors.toList());
-
             List<Resource> entities = matchedResourcesUnfiltered.stream()
                     .filter(mR -> mR.getSubsetOf() == null) //for entities, remove Subsets
                     .filter(mR -> mR.getResource() != null)
-                    .map(mR -> mR.getResource())
+                    .map(MatchedResource::getResource)
                     .collect(Collectors.toList());
 
             entities.addAll(disambiguatedResources);
             List<Resource> finalEntities = entities.stream()
-                    .filter(r -> !finalProperties.contains(r))
+                    .filter(r -> !properties.contains(r))
                     .filter(r -> r.getIri() != null)
-                    .filter(Util.distinctByKey(r -> r.getIri())) //distinct by Iri
+                    .filter(Util.distinctByKey(Resource::getIri)) //distinct by Iri
                     .collect(Collectors.toList());
 
-            for (Resource subjectR : finalEntities) {
-                for (Resource propertyR : finalProperties) {
+            // وای وای چه کار زشتی!
+            if((queryText.contains("فیلم") ||  queryText.contains("سریال"))
+                    && properties.stream().noneMatch(r -> r.getIri().contains("ontology/starring")))
+                properties.add(new Resource("http://fkg.iust.ac.ir/ontology/starring","فیلم‌"));
+
+
+            for (Resource subjectR : allEntities) {
+                for (Resource propertyR : properties) {
                     try {
                         System.out.println("Trying combinatios for " + subjectR.getIri() + "\t & \t" + propertyR.getIri());
                         Map<String, String> objectLables = kgFetcher.fetchSubjPropObjQuery(subjectR.getIri(), propertyR.getIri());
@@ -109,8 +126,8 @@ public class Searcher {
             }
 
             //Output individual entities
-            Set<String> uriOfEntities = new HashSet<String>();
-            for (Resource entity : entities) {
+            Set<String> uriOfEntities = new HashSet<>();
+            for (Resource entity : finalEntities) {
                 try {
                     ResultEntity resultEntity = matchedResourceToResultEntity(entity);
                     if (uriOfEntities.contains(resultEntity.getLink()))
@@ -128,7 +145,7 @@ public class Searcher {
         return result;
     }
 
-    private ResultEntity matchedResourceToResultEntity(Resource resource) {;
+    private ResultEntity matchedResourceToResultEntity(Resource resource) {
         ResultEntity resultEntity = new ResultEntity();
         resultEntity.setTitle(resource.getLabel());
         //resultEntity.setSubtitle(kgFetcher.fetchLabel(resource.getInstanceOf(), true));

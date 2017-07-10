@@ -9,6 +9,7 @@ import ir.ac.iust.dml.kg.virtuoso.jena.driver.VirtGraph;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * Created by ali on 4/16/17.
@@ -94,7 +95,8 @@ public class KGFetcher {
      */
     public Map<String, String> fetchSubjPropObjQuery(String subjectUri, String propertyUri) {
         Map<String, String> matchedObjectLabels = new TreeMap<String, String>();
-        String queryString =
+        String[] queryStrings = new String[2];
+        queryStrings[0] =
                 "SELECT ?o " + //?l " +
                         "WHERE {\n" +
                         "<" +
@@ -103,33 +105,45 @@ public class KGFetcher {
                         //"?o <http://www.w3.org/2000/01/rdf-schema#label> ?l\n" +
                         //"FILTER (lang(?o) = \"fa\")" +
                         "}";
-        final Query query = QueryFactory.create(queryString);
-        final QueryExecution qexec = QueryExecutionFactory.create(query, model);
-        final ResultSet results = qexec.execSelect();
+        queryStrings[1] =   //reverse relation
+                "SELECT ?o " + //?l " +
+                        "WHERE {\n" +
+                        "?o <" + propertyUri +
+                        "> <" + subjectUri +
+                        ">. \n" +
+                        //"?o <http://www.w3.org/2000/01/rdf-schema#label> ?l\n" +
+                        //"FILTER (lang(?o) = \"fa\")" +
+                        "}";
 
-        String resultText = "";
-        while (results.hasNext()) {
-            final QuerySolution binding = results.nextSolution();
-            final RDFNode o = binding.get("o");
-            String objectUri = o.toString();
-            //final RDFNode l = binding.get("l");
-            String objectLabel = objectUri;
-            try {
-                objectLabel = Searcher.getInstance().getExtractor().getResourceByIRI(objectUri).getLabel();
-                if (objectLabel == null || objectLabel.isEmpty()) {
-                    System.err.println("Lable for \"" + objectUri + "\" fetched from resourceExtractor is null/empty, trying DB");
-                    objectLabel = fetchLabel(objectUri, false);
+        for(String queryString: queryStrings) {
+            final Query query = QueryFactory.create(queryString);
+            final QueryExecution qexec = QueryExecutionFactory.create(query, model);
+            final ResultSet results = qexec.execSelect();
+
+            while (results.hasNext()) {
+                final QuerySolution binding = results.nextSolution();
+                final RDFNode o = binding.get("o");
+                String objectUri = o.toString();
+                if(matchedObjectLabels.containsKey(objectUri))
+                    continue;
+                //final RDFNode l = binding.get("l");
+                String objectLabel = objectUri;
+                try {
+                    objectLabel = Searcher.getInstance().getExtractor().getResourceByIRI(objectUri).getLabel();
+                    if (objectLabel == null || objectLabel.isEmpty()) {
+                        System.err.println("Lable for \"" + objectUri + "\" fetched from resourceExtractor is null/empty, trying DB");
+                        objectLabel = fetchLabel(objectUri, false);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            if (objectLabel == null || objectLabel.isEmpty()) {
-                System.err.println("Lable for \"" + objectUri + "\" fetched from DB and/or resourceExtractor is null/empty, using Iri instead");
-                objectLabel = objectUri;
-            }
+                if (objectLabel == null || objectLabel.isEmpty()) {
+                    System.err.println("Lable for \"" + objectUri + "\" fetched from DB and/or resourceExtractor is null/empty, using Iri instead");
+                    objectLabel = objectUri;
+                }
+                matchedObjectLabels.put(objectUri, objectLabel);
 
-            matchedObjectLabels.put(objectUri, objectLabel);
-
+            }
         }
         return matchedObjectLabels;
     }
