@@ -36,11 +36,10 @@ public class Searcher {
     public SearchResult search(String keyword) {
         String queryText = normalizer.normalize(keyword);
         final SearchResult result = new SearchResult();
-
+        System.out.println(new Date() + " PROCESSING QUERY: " + keyword);
         //Answering predicate-subject phrases
         try {
             List<MatchedResource> matchedResourcesUnfiltered = extractor.search(queryText, false);
-
 
             List<Resource> allMatchedResources = matchedResourcesUnfiltered.stream()
                     .flatMap(mR -> {
@@ -58,7 +57,6 @@ public class Searcher {
                     .filter(r -> r.getIri() != null)
                     .filter(Util.distinctByKey(Resource::getIri)) //distinct by Iri
                     .collect(Collectors.toList());
-
 
 
             List<Resource> properties = allMatchedResources.stream()
