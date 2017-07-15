@@ -128,7 +128,7 @@ public class KGFetcher {
                     continue;
                 //final RDFNode l = binding.get("l");
                 String objectLabel = objectUri;
-                try {
+                try { 
                     objectLabel = Searcher.getInstance().getExtractor().getResourceByIRI(objectUri).getLabel();
                     if (objectLabel == null || objectLabel.isEmpty()) {
                         System.err.println("Lable for \"" + objectUri + "\" fetched from resourceExtractor is null/empty, trying DB");
