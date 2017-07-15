@@ -58,7 +58,6 @@ public class Searcher {
                     .filter(Util.distinctByKey(Resource::getIri)) //distinct by Iri
                     .collect(Collectors.toList());
 
-
             List<Resource> properties = allMatchedResources.stream()
                     .filter(r -> r.getType() != null)
                     .filter(r -> r.getType().toString().contains("Property"))
