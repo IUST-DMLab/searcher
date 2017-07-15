@@ -128,7 +128,7 @@ public class KGFetcher {
                     continue;
                 //final RDFNode l = binding.get("l");
                 String objectLabel = objectUri;
-                try { 
+                try {
                     objectLabel = Searcher.getInstance().getExtractor().getResourceByIRI(objectUri).getLabel();
                     if (objectLabel == null || objectLabel.isEmpty()) {
                         System.err.println("Lable for \"" + objectUri + "\" fetched from resourceExtractor is null/empty, trying DB");
@@ -148,9 +148,10 @@ public class KGFetcher {
         return matchedObjectLabels;
     }
 
-
     /*SELECT  ?o
 WHERE { <http://fkg.iust.ac.ir/resources/کیمیا_(مجموعه_تلویزیونی)> <http://fkg.iust.ac.ir/ontology/starring> ?o. }
 */
 
+
+    // this line is for git sync test!
 }
