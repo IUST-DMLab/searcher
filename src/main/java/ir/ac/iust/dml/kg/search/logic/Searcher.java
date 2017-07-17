@@ -63,17 +63,17 @@ public class Searcher {
                     .filter(r -> r.getType().toString().contains("Property"))
                     .collect(Collectors.toList());
 
-            List<Resource> allEntities = allMatchedResources.stream()
+            /*List<Resource> allEntities = allMatchedResources.stream()
                     .filter(r -> r.getType() != null)
                     .filter(r -> !properties.contains(r))
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList());*/
 
             List<Resource> disambiguatedResources = matchedResourcesUnfiltered.stream()
                     .filter(mR -> mR.getSubsetOf() == null) //for entities, remove Subsets
                     .filter(mR -> mR.getAmbiguities() != null && mR.getAmbiguities().size() > 0)
                     .flatMap(mR -> mR.getAmbiguities().stream())
                     .map(r -> {
-                        if (Strings.isNullOrEmpty(r.getLabel())) r.setLabel("بدون برچسب");
+                        if (Strings.isNullOrEmpty(r.getLabel())) r.setLabel(Util.iriToLabel(r.getIri()));
                         else r.setLabel(r.getLabel() + " (ابهام‌زدایی‌شده)");
                         return r;
                     })
@@ -98,7 +98,7 @@ public class Searcher {
                 properties.add(new Resource("http://fkg.iust.ac.ir/ontology/starring","فیلم‌"));
 
 
-            for (Resource subjectR : allEntities) {
+            for (Resource subjectR : entities) {
                 for (Resource propertyR : properties) {
                     try {
                         System.out.println("Trying combinatios for " + subjectR.getIri() + "\t & \t" + propertyR.getIri());

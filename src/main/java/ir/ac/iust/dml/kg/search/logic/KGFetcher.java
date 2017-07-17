@@ -56,7 +56,7 @@ public class KGFetcher {
         }
         resultText = resultText.replaceAll("@fa", "");
         if (resultText.equals(""))
-            resultText = uri.replace(".*/","");
+            resultText = Util.iriToLabel(uri);
 
         if (resultText.contains(KB_PREFIX))
             resultText = resultText.replace(KB_PREFIX, "").replace('_', ' ');

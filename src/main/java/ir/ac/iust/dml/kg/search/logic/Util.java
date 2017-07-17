@@ -29,4 +29,9 @@ public class Util {
         Map<Object,Boolean> seen = new ConcurrentHashMap<>();
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
+
+
+    public static String iriToLabel(String iri){
+        return iri.replace(".*/","").replace('_',' ');
+    }
 }
