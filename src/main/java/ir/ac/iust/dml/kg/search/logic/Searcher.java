@@ -149,7 +149,7 @@ public class Searcher {
 
         //resultEntity.setSubtitle(kgFetcher.fetchLabel(resource.getInstanceOf(), true));
         Resource ontologyClass = extractor.getResourceByIRI(resource.getInstanceOf());
-        if(ontologyClass != null || !ontologyClass.getLabel().isEmpty())
+        if(ontologyClass != null && ontologyClass.getLabel() != null && !ontologyClass.getLabel().isEmpty())
             resultEntity.setSubtitle(ontologyClass.getLabel());
 
         resultEntity.setLink(resource.getIri());
