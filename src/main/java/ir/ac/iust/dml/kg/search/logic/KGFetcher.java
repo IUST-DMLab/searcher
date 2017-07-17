@@ -56,7 +56,7 @@ public class KGFetcher {
         }
         resultText = resultText.replaceAll("@fa", "");
         if (resultText.equals(""))
-            resultText = uri;
+            resultText = uri.replace(".*/","");
 
         if (resultText.contains(KB_PREFIX))
             resultText = resultText.replace(KB_PREFIX, "").replace('_', ' ');
@@ -135,6 +135,7 @@ public class KGFetcher {
                         objectLabel = fetchLabel(objectUri, false);
                     }
                 } catch (Exception e) {
+                    System.err.println("Can't fetch label for :" + objectUri);
                     e.printStackTrace();
                 }
                 if (objectLabel == null || objectLabel.isEmpty()) {

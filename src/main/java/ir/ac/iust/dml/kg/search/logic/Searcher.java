@@ -103,6 +103,7 @@ public class Searcher {
                     try {
                         System.out.println("Trying combinatios for " + subjectR.getIri() + "\t & \t" + propertyR.getIri());
                         Map<String, String> objectLables = kgFetcher.fetchSubjPropObjQuery(subjectR.getIri(), propertyR.getIri());
+                        System.out.println("\t RESULTS FOUND: " + objectLables.keySet().size());
                         for (Map.Entry<String, String> olEntry : objectLables.entrySet()) {
                             System.out.printf("Object: %s\t%s\n", olEntry.getKey(), olEntry.getValue());
                             ResultEntity resultEntity = new ResultEntity();
@@ -145,8 +146,12 @@ public class Searcher {
     private ResultEntity matchedResourceToResultEntity(Resource resource) {
         ResultEntity resultEntity = new ResultEntity();
         resultEntity.setTitle(resource.getLabel());
+
         //resultEntity.setSubtitle(kgFetcher.fetchLabel(resource.getInstanceOf(), true));
-        resultEntity.setSubtitle(extractor.getResourceByIRI(resource.getInstanceOf()).getLabel());
+        Resource ontologyClass = extractor.getResourceByIRI(resource.getInstanceOf());
+        if(ontologyClass != null || !ontologyClass.getLabel().isEmpty())
+            resultEntity.setSubtitle(ontologyClass.getLabel());
+
         resultEntity.setLink(resource.getIri());
                     /*String wikiPage = kgFetcher.fetchWikiPage(resource.getIri());
                     if (wikiPage != null)
