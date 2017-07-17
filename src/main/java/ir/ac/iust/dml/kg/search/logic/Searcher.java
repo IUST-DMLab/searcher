@@ -139,9 +139,12 @@ public class Searcher {
             }
 
 
-            for(ResultEntity r : result.getEntities())
-                if(r.getLink().contains(")"))
+            for(ResultEntity r : result.getEntities()) {
+                if (r.getLink().contains(")"))
                     r.setTitle(Util.iriToLabel(r.getLink()));
+                if(r.getTitle().contains("/"))
+                    r.setTitle(Util.iriToLabel(r.getTitle()));
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

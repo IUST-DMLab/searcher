@@ -33,12 +33,13 @@ public class Util {
 
     public static String iriToLabel(String iri)
     {
+        iri = iri.replace("@fa","").replace("fa@","");
         String[] splits = iri.split("/");
         return splits[splits.length-1].replace('_',' ');
     }
 
     public static void main(String[] args) {
-        String s = "http://fkg.iust.ac.ir/resource/سلام_(آلبوم_سامی_یوسف)";
-        System.out.println(iriToLabel(s));
+        String s = "۱۸ فروردین ۱۳۴۶ ()@fa";
+        System.out.println(s.replaceAll("@fa", ""));
     }
 }
