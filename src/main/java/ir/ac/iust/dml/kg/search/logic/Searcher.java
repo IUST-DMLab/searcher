@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Searcher {
+
     private final IResourceExtractor extractor;
     private final KGFetcher kgFetcher;
     private static final PersianCharNormalizer normalizer = new PersianCharNormalizer();
@@ -74,7 +75,7 @@ public class Searcher {
                     .flatMap(mR -> mR.getAmbiguities().stream())
                     .map(r -> {
                         if (Strings.isNullOrEmpty(r.getLabel())) r.setLabel(Util.iriToLabel(r.getIri()));
-                        else r.setLabel(r.getLabel() + " (ابهام‌زدایی‌شده)");
+                        else r.setLabel(r.getLabel() + " (ابهام‌زدایی شده)");
                         return r;
                     })
                     .collect(Collectors.toList());
@@ -136,9 +137,16 @@ public class Searcher {
                     e.printStackTrace();
                 }
             }
+
+
+            for(ResultEntity r : result.getEntities())
+                if(r.getLink().contains(")"))
+                    r.setTitle(Util.iriToLabel(r.getLink()));
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+
 
         return result;
     }
