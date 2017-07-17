@@ -31,7 +31,14 @@ public class Util {
     }
 
 
-    public static String iriToLabel(String iri){
-        return iri.replace(".*/","").replace('_',' ');
+    public static String iriToLabel(String iri)
+    {
+        String[] splits = iri.split("/");
+        return splits[splits.length-1].replace('_',' ');
+    }
+
+    public static void main(String[] args) {
+        String s = "http://fkg.iust.ac.ir/resource/سلام_(آلبوم_سامی_یوسف)";
+        System.out.println(iriToLabel(s));
     }
 }
