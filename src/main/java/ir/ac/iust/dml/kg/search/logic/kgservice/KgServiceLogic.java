@@ -89,9 +89,10 @@ public class KgServiceLogic {
         return entityData;
     }
 
-    public Entities getEntitiesOfClass(String classUrl) {
+    public Entities getEntitiesOfClass(String classUrl, int page, int pageSize) {
+        if (pageSize > 1000) pageSize = 1000;
         final Entities entities = new Entities();
-        final List<VirtuosoTriple> triples = connector.getTriplesOfObject(TYPE, classUrl);
+        final List<VirtuosoTriple> triples = connector.getTriplesOfObject(TYPE, classUrl, page, pageSize);
         if (triples == null) return null;
         for (VirtuosoTriple triple : triples) {
             if (triple.getPredicate() == null || triple.getSource() == null) continue;

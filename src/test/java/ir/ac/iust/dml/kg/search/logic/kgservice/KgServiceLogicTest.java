@@ -69,9 +69,10 @@ class KgServiceLogicTest {
 
     @Test
     void getEntitiesOfClass() {
-        final Entities entities = logic.getEntitiesOfClass("http://fkg.iust.ac.ir/ontology/Game");
+        final Entities entities = logic.getEntitiesOfClass("http://fkg.iust.ac.ir/ontology/Game", 0, 10);
         assert entities != null;
         assert entities.getResult().size() > 0;
+        assert entities.getResult().size() <= 10;
         entities.getResult().forEach(entityInfo -> {
             assert entityInfo.getEntityLabel() != null;
             assert entityInfo.getEntityUrl() != null;
