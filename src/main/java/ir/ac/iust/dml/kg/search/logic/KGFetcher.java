@@ -7,6 +7,7 @@ import com.hp.hpl.jena.rdf.model.RDFNode;
 import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
 import ir.ac.iust.dml.kg.virtuoso.jena.driver.VirtGraph;
 
+import java.io.FileNotFoundException;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -135,7 +136,6 @@ public class KGFetcher {
                         objectLabel = fetchLabel(objectUri, false);
                     }
                 } catch (Exception e) {
-                    System.err.println("Can't fetch label for :" + objectUri);
                     e.printStackTrace();
                 }
                 if (objectLabel == null || objectLabel.isEmpty()) {

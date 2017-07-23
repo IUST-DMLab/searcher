@@ -7,6 +7,7 @@ import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.SearchResult;
 import knowledgegraph.normalizer.PersianCharNormalizer;
 
+import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -119,7 +120,12 @@ public class Searcher {
                             result.getEntities().add(resultEntity);
                         }
                     } catch (Exception e) {
+                        String emsg = e.getMessage().toLowerCase();
                         e.printStackTrace();
+                        if(emsg.contains("broken pipe") || emsg.contains("connection refused")){
+                            System.err.println((new Date()) + "\t EXITING!");
+                            System.exit(1);
+                        }
                     }
                 }
             }
