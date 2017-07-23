@@ -95,10 +95,7 @@ public class Searcher {
                     .collect(Collectors.toList());
 
             // وای وای چه کار زشتی!
-            if((queryText.contains("فیلم") ||  queryText.contains("سریال"))
-                    && properties.stream().noneMatch(r -> r.getIri().contains("ontology/starring")))
-                properties.add(new Resource("http://fkg.iust.ac.ir/ontology/starring","فیلم‌"));
-
+            doManualCorrections(properties,queryText);
 
             for (Resource subjectR : entities) {
                 for (Resource propertyR : properties) {
@@ -158,6 +155,33 @@ public class Searcher {
 
 
         return result;
+    }
+
+    private void doManualCorrections(List<Resource> properties, String queryText) {
+        if((queryText.contains("فیلم") ||  queryText.contains("سریال"))
+                && properties.stream().noneMatch(r -> r.getIri().contains("ontology/starring")))
+            properties.add(new Resource("http://fkg.iust.ac.ir/ontology/starring","فیلم‌"));
+
+        if((queryText.contains("درامد") ||  queryText.contains("درآمد"))
+                && properties.stream().noneMatch(r -> r.getIri().contains("ontology/revenue")))
+            properties.add(new Resource("http://fkg.iust.ac.ir/ontology/revenue","درآمد"));
+
+        if((queryText.contains("ترکیبات اصلی"))
+                && properties.stream().noneMatch(r -> r.getIri().contains("ontology/ingredient")))
+            properties.add(new Resource("http://fkg.iust.ac.ir/ontology/ingredient","ترکیبات اصلی"));
+
+        if((queryText.contains("کارکنان") || queryText.contains("پرسنل") || queryText.contains("کارمندان"))
+                && properties.stream().noneMatch(r -> r.getIri().contains("ontology/numberOfEmployees")))
+            properties.add(new Resource("http://fkg.iust.ac.ir/ontology/numberOfEmployees","تعداد پرسنل"));
+
+        if((queryText.contains("باشگاه") || queryText.contains("تیم"))
+                && properties.stream().noneMatch(r -> r.getIri().contains("ontology/team")))
+            properties.add(new Resource("http://fkg.iust.ac.ir/ontology/team","تیم"));
+
+
+        if((queryText.contains("ساخت") && queryText.contains("دوره"))
+                && properties.stream().noneMatch(r -> r.getIri().contains("property/دیرینگی")))
+            properties.add(new Resource("http://fkg.iust.ac.ir/property/دیرینگی","دوره ساخت (دیرینگی)"));
     }
 
     private ResultEntity matchedResourceToResultEntity(Resource resource) {
