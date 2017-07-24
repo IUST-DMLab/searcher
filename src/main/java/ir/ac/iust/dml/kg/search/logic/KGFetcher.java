@@ -149,7 +149,7 @@ public class KGFetcher {
                     System.err.println("Lable for \"" + objectUri + "\" fetched from DB and/or resourceExtractor is null/empty, using Iri instead");
                     objectLabel = objectUri;
                 }
-                matchedObjectLabels.put(objectUri, objectLabel);
+                matchedObjectLabels.put(objectUri.replace("@fa",""), objectLabel.replace("@fa",""));
             }
 
             //close connection
