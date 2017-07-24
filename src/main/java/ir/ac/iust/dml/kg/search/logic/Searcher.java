@@ -157,6 +157,12 @@ public class Searcher {
         return result;
     }
 
+    /**
+     *  وای وای چه کار زشتی!
+     *  Adds undetected properties according to the patterns.
+     * @param properties
+     * @param queryText
+     */
     private void doManualCorrections(List<Resource> properties, String queryText) {
         if((queryText.contains("فیلم") ||  queryText.contains("سریال"))
                 && properties.stream().noneMatch(r -> r.getIri().contains("ontology/starring")))

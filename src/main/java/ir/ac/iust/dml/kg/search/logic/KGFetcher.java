@@ -62,6 +62,9 @@ public class KGFetcher {
         if (resultText.contains(KB_PREFIX))
             resultText = resultText.replace(KB_PREFIX, "").replace('_', ' ');
 
+        //close connection
+        try { qexec.close(); } catch (Throwable th) { th.printStackTrace(); }
+
         return resultText;
     }
 
@@ -84,6 +87,10 @@ public class KGFetcher {
             final RDFNode o = binding.get("o");
             resultText = o.toString();
         }
+
+        //close connection
+        try { qexec.close(); } catch (Throwable th) { th.printStackTrace(); }
+
         return resultText;
     }
 
@@ -143,9 +150,12 @@ public class KGFetcher {
                     objectLabel = objectUri;
                 }
                 matchedObjectLabels.put(objectUri, objectLabel);
-
             }
+
+            //close connection
+            try { qexec.close(); } catch (Throwable th) { th.printStackTrace(); }
         }
+
         return matchedObjectLabels;
     }
 
