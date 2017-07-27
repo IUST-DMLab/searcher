@@ -198,6 +198,6 @@ public class KGFetcher {
         long numLastFetchedResults = 0;
         do {
             numLastFetchedResults = fetcher.fetchsubjPropertyObjRecords(page++, pageSize);
-        }while(numLastFetchedResults == pageSize);
+        }while(numLastFetchedResults != 0);
     }
 }
