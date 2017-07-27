@@ -4,6 +4,7 @@ import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.Resource;
 import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
 import ir.ac.iust.dml.kg.virtuoso.jena.driver.VirtGraph;
 
@@ -124,6 +125,8 @@ public class KGFetcher {
                         "}";
 
         for(String queryString: queryStrings) {
+
+            System.out.printf("\n\n%s\n\n",queryString);
             final Query query = QueryFactory.create(queryString);
             final QueryExecution qexec = QueryExecutionFactory.create(query, model);
             final ResultSet results = qexec.execSelect();
@@ -134,7 +137,7 @@ public class KGFetcher {
                 String objectUri = o.toString();
                 if(matchedObjectLabels.containsKey(objectUri))
                     continue;
-                //final RDFNode l = binding.get("l");
+
                 String objectLabel = objectUri;
                 try {
                     objectLabel = Searcher.getInstance().getExtractor().getResourceByIRI(objectUri).getLabel();
@@ -159,10 +162,41 @@ public class KGFetcher {
         return matchedObjectLabels;
     }
 
-    /*SELECT  ?o
-WHERE { <http://fkg.iust.ac.ir/resources/کیمیا_(مجموعه_تلویزیونی)> <http://fkg.iust.ac.ir/ontology/starring> ?o. }
-*/
 
+    public long fetchAllQueries(long page, long pageSize) {
+        String queryString =
+                "SELECT ?s ?p ?o\n" +
+                        "WHERE {\n" +
+                        "?s ?p ?o .\n" +
+                        "}"
+                        + ((page >= 0 && pageSize >= 0) ? " OFFSET " + (page * pageSize) + " LIMIT " + pageSize : "");
 
-    // this line is for git sync test!
+        final Query query = QueryFactory.create(queryString);
+        final QueryExecution exec = QueryExecutionFactory.create(query, model);
+        final ResultSet results = exec.execSelect();
+
+        long recordNum = 0;
+        while (results.hasNext()) {
+            recordNum++;
+            final QuerySolution binding = results.nextSolution();
+            final Resource s = (Resource) binding.get("s");
+            final Resource p = (Resource) binding.get("p");
+            final RDFNode o = binding.get("o");
+            System.out.printf("[%,d]\t%s\t%s\t%s\n", recordNum + page * pageSize, s.toString(),p.toString(),o.toString());
+        }
+        return recordNum;
+    }
+
+    public static void main(String[] args) {
+        KGFetcher fetcher = new KGFetcher();
+        long page = 1; //should start from 0;
+        while (true) {
+            page *= 2;
+            long numResults = fetcher.fetchAllQueries(page, 10);
+            if(numResults == 0) {
+                System.out.printf("no results for page\t%,d\n", page);
+                break;
+            }
+        }
+    }
 }
