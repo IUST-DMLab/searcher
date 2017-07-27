@@ -20,6 +20,7 @@ public class KGFetcher {
     private static final String KB_PREFIX = "http://fkg.iust.ac.ir/resource/";
     private VirtGraph graph = null;
     private Model model = null;
+    private  Map<Map.Entry<String,String>,String> subjPropertyObjMap = null;
 
     public KGFetcher() {
         System.err.println("Loading KGFetcher...");
@@ -125,13 +126,12 @@ public class KGFetcher {
                         "}";
 
         for(String queryString: queryStrings) {
-
-            System.out.printf("\n\n%s\n\n",queryString);
             final Query query = QueryFactory.create(queryString);
             final QueryExecution qexec = QueryExecutionFactory.create(query, model);
             final ResultSet results = qexec.execSelect();
 
             while (results.hasNext()) {
+                System.err.println("HEY\nHEY\n  RESULT HAS NEXT!! \n\n HEY!!!!!!!");
                 final QuerySolution binding = results.nextSolution();
                 final RDFNode o = binding.get("o");
                 String objectUri = o.toString();
@@ -158,16 +158,16 @@ public class KGFetcher {
 
                 matchedObjectLabels.put(objectUri.replace("@fa",""), objectLabel.replace("@fa",""));
             }
-
             //close connection
             try { qexec.close(); } catch (Throwable th) { th.printStackTrace(); }
         }
+
 
         return matchedObjectLabels;
     }
 
 
-    public long fetchAllQueries(long page, long pageSize) {
+    public long fetchsubjPropertyObjRecords(long page, long pageSize) {
         String queryString =
                 "SELECT ?s ?p ?o\n" +
                         "WHERE {\n" +
@@ -192,15 +192,12 @@ public class KGFetcher {
     }
 
     public static void main(String[] args) {
+        long pageSize = 10000;
         KGFetcher fetcher = new KGFetcher();
-        long page = 1; //should start from 0;
-        while (true) {
-            page *= 2;
-            long numResults = fetcher.fetchAllQueries(page, 10);
-            if(numResults == 0) {
-                System.out.printf("no results for page\t%,d\n", page);
-                break;
-            }
-        }
+        long page = 0; //should start from 0;
+        long numLastFetchedResults = 0;
+        do {
+            numLastFetchedResults = fetcher.fetchsubjPropertyObjRecords(page++, pageSize);
+        }while(numLastFetchedResults == pageSize);
     }
 }
