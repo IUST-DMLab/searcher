@@ -51,6 +51,12 @@
             <version>1.1.7</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.dslplatform</groupId>
+            <artifactId>dsl-json-processor</artifactId>
+            <version>1.4.8</version>
+            <scope>provided</scope>
+        </dependency>
 
         <dependency>
             <groupId>ir.ac.iust.dml.kg</groupId>
