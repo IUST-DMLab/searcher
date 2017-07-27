@@ -172,8 +172,9 @@ public class KGFetcher {
                 "SELECT ?s ?p ?o\n" +
                         "WHERE {\n" +
                         "?s ?p ?o .\n" +
-                        "}"
-                        + ((page >= 0 && pageSize >= 0) ? " OFFSET " + (page * pageSize) + " LIMIT " + pageSize : "");
+                        "filter(regex(str(?p), \"/ontology/\") || regex(str(?p), \"/property/\") )\n" +
+                        "}" +
+                        ((page >= 0 && pageSize >= 0) ? " OFFSET " + (page * pageSize) + " LIMIT " + pageSize : "");
 
         final Query query = QueryFactory.create(queryString);
         final QueryExecution exec = QueryExecutionFactory.create(query, model);
