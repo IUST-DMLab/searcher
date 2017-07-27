@@ -193,7 +193,7 @@ public class KGFetcher {
     }
 
     public static void main(String[] args) {
-        long pageSize = 10000;
+        long pageSize = 100000;
         KGFetcher fetcher = new KGFetcher();
         long page = 0; //should start from 0;
         long numLastFetchedResults = 0;
