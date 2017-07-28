@@ -193,11 +193,10 @@ public class KGFetcher {
         File[] files=folder.listFiles();
         long count = 0;
         long t = System.currentTimeMillis();
+
         for(File file : files){
             Model model=ModelFactory.createDefaultModel();
-            try {
-                model.read(new FileInputStream(file.getAbsolutePath()),null,"TTL");
-            } catch (FileNotFoundException e) {e.printStackTrace(); System.exit(1); }
+            model.read(new FileInputStream(file.getAbsolutePath()),null,"TTL");
             StmtIterator iter = model.listStatements();
             while ( iter.hasNext() ) {
                 Statement stmt = iter.next();
@@ -211,12 +210,14 @@ public class KGFetcher {
             if ( iter != null ) iter.close();
             System.out.printf("Finished loading %s in %,d ms from beginning\n", file.getName(), System.currentTimeMillis() - t);
         }
+
         System.out.printf("Finished in: %,d ms \n", System.currentTimeMillis() - t);
         //serialize(subjPropertyObjMap,"subjPropertyObjMap.data");
         System.out.printf("Finished subjPropertyObjMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
         //serialize(objPropertySubjMap,"objPropertySubjMap.data");
         System.out.printf("Finished objPropertySubjMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
         interns.clear();
+
     }
 
     private void serialize(Map<Map.Entry<String, String>, List<String>> obj, String filePath) throws IOException {
@@ -228,11 +229,11 @@ public class KGFetcher {
     }
 
     private static void writeToMap(Map<Map.Entry<String, String>, List<String>> map, String k1, String k2, String v) {
-        AbstractMap.SimpleEntry<String, String> key = new AbstractMap.SimpleEntry(k1, k2);
+        AbstractMap.SimpleEntry<String, String> key = new AbstractMap.SimpleEntry(intern(k1), intern(k2));
         if(!map.containsKey(key))
             map.put(key,new ArrayList<>());
         if(!map.get(key).contains(v))
-            map.get(key).add(v);
+            map.get(key).add(intern(v));
     }
 
     /**
