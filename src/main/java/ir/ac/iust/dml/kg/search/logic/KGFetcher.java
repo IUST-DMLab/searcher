@@ -16,7 +16,7 @@ public class KGFetcher {
     private static final String KB_PREFIX = "http://fkg.iust.ac.ir/resource/";
     private VirtGraph graph = null;
     private Model model = null;
-    private static Map<String,String> interns = new ConcurrentHashMap<>();
+    private static Map<String,String> interns = new ConcurrentHashMap<>(7*1000*1000);
     private  Map<Map.Entry<String,String>,List<String>> subjPropertyObjMap = new HashMap<>();
     private  Map<Map.Entry<String,String>, List<String>> objPropertySubjMap = new HashMap<>();
 
@@ -191,7 +191,6 @@ public class KGFetcher {
     public void loadFromTTL(String folderPath) throws IOException {
         File folder = new File(folderPath);
         File[] files=folder.listFiles();
-        Arrays.stream(files).forEach(System.out::println);
         long count = 0;
         long t = System.currentTimeMillis();
         Arrays.stream(files).parallel().forEach(file -> {
@@ -231,7 +230,7 @@ public class KGFetcher {
     private synchronized static void writeToMap(Map<Map.Entry<String, String>, List<String>> map, String k1, String k2, String v) {
         AbstractMap.SimpleEntry<String, String> key = new AbstractMap.SimpleEntry(intern(k1), intern(k2));
         if(!map.containsKey(key))
-            map.put(key,new LinkedList<>());
+            map.put(key,new ArrayList<>());
         if(!map.get(key).contains(v))
             map.get(key).add(intern(v));
     }
