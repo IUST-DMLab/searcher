@@ -193,7 +193,7 @@ public class KGFetcher {
         File[] files=folder.listFiles();
         long count = 0;
         long t = System.currentTimeMillis();
-        Arrays.stream(files).forEach(file -> {
+        for(File file : files){
             Model model=ModelFactory.createDefaultModel();
             try {
                 model.read(new FileInputStream(file.getAbsolutePath()),null,"TTL");
@@ -210,7 +210,7 @@ public class KGFetcher {
             }
             if ( iter != null ) iter.close();
             System.out.printf("Finished loading %s in %,d ms from beginning\n", file.getName(), System.currentTimeMillis() - t);
-        });
+        }
         System.out.printf("Finished in: %,d ms \n", System.currentTimeMillis() - t);
         serialize(subjPropertyObjMap,"subjPropertyObjMap.data");
         System.out.printf("Finished subjPropertyObjMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
