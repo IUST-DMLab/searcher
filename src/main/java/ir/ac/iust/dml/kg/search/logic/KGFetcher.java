@@ -216,6 +216,7 @@ public class KGFetcher {
         System.out.printf("Finished subjPropertyObjMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
         serialize(objPropertySubjMap,"objPropertySubjMap.data");
         System.out.printf("Finished objPropertySubjMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
+        interns.clear();
     }
 
     private void serialize(Map<Map.Entry<String, String>, List<String>> obj, String filePath) throws IOException {
