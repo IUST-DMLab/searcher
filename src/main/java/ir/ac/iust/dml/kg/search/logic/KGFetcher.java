@@ -2,16 +2,11 @@ package ir.ac.iust.dml.kg.search.logic;
 
 import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.util.FileManager;
 import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
 import ir.ac.iust.dml.kg.virtuoso.jena.driver.VirtGraph;
-import org.apache.jena.tdb.TDBFactory;
-import org.apache.logging.log4j.core.util.SystemNanoClock;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * Created by ali on 4/16/17.
