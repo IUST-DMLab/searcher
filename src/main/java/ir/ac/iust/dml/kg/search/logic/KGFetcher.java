@@ -193,7 +193,7 @@ public class KGFetcher {
         File[] files=folder.listFiles();
         long count = 0;
         long t = System.currentTimeMillis();
-        Arrays.stream(files).parallel().forEach(file -> {
+        Arrays.stream(files).forEach(file -> {
             Model model=ModelFactory.createDefaultModel();
             try {
                 model.read(new FileInputStream(file.getAbsolutePath()),null,"TTL");
@@ -227,7 +227,7 @@ public class KGFetcher {
         fileOut.close();
     }
 
-    private synchronized static void writeToMap(Map<Map.Entry<String, String>, List<String>> map, String k1, String k2, String v) {
+    private static void writeToMap(Map<Map.Entry<String, String>, List<String>> map, String k1, String k2, String v) {
         AbstractMap.SimpleEntry<String, String> key = new AbstractMap.SimpleEntry(intern(k1), intern(k2));
         if(!map.containsKey(key))
             map.put(key,new ArrayList<>());
