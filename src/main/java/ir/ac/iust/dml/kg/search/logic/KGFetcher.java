@@ -7,6 +7,7 @@ import ir.ac.iust.dml.kg.virtuoso.jena.driver.VirtGraph;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by ali on 4/16/17.
@@ -15,6 +16,7 @@ public class KGFetcher {
     private static final String KB_PREFIX = "http://fkg.iust.ac.ir/resource/";
     private VirtGraph graph = null;
     private Model model = null;
+    private static Map<String,String> interns = new ConcurrentHashMap<>();
     private  Map<Map.Entry<String,String>,List<String>> subjPropertyObjMap = new HashMap<>();
     private  Map<Map.Entry<String,String>, List<String>> objPropertySubjMap = new HashMap<>();
 
@@ -191,9 +193,11 @@ public class KGFetcher {
         File[] files=folder.listFiles();
         long count = 0;
         long t = System.currentTimeMillis();
-        for(File file : files){
+        Arrays.stream(files).parallel().forEach(file -> {
             Model model=ModelFactory.createDefaultModel();
-            model.read(new FileInputStream(file.getAbsolutePath()),null,"TTL");
+            try {
+                model.read(new FileInputStream(file.getAbsolutePath()),null,"TTL");
+            } catch (FileNotFoundException e) {e.printStackTrace(); System.exit(1); }
             StmtIterator iter = model.listStatements();
             while ( iter.hasNext() ) {
                 Statement stmt = iter.next();
@@ -206,7 +210,7 @@ public class KGFetcher {
             }
             if ( iter != null ) iter.close();
             System.out.printf("Finished loading %s in %,d ms from beginning\n", file.getName(), System.currentTimeMillis() - t);
-        }
+        });
         System.out.printf("Finished in: %,d ms \n", System.currentTimeMillis() - t);
         serialize(subjPropertyObjMap,"subjPropertyObjMap.data");
         System.out.printf("Finished subjPropertyObjMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
@@ -222,20 +226,28 @@ public class KGFetcher {
         fileOut.close();
     }
 
-    private static void writeToMap(Map<Map.Entry<String, String>, List<String>> map, String k1, String k2, String v) {
-        AbstractMap.SimpleEntry<String, String> key = new AbstractMap.SimpleEntry(k1, k2);
+    private synchronized static void writeToMap(Map<Map.Entry<String, String>, List<String>> map, String k1, String k2, String v) {
+        AbstractMap.SimpleEntry<String, String> key = new AbstractMap.SimpleEntry(intern(k1), intern(k2));
         if(!map.containsKey(key))
             map.put(key,new LinkedList<>());
         if(!map.get(key).contains(v))
-            map.get(key).add(v);
+            map.get(key).add(intern(v));
     }
 
-    private void putInMap(Map<Long, List<String>> subjPropertyObjMap, String s, String s1, String s2) {
-
+    /**
+     * String deduplication.
+     * @param str
+     * @return
+     */
+    private static String intern(String str){
+        if(!interns.containsKey(str)) {
+            interns.put(str,str);
+        }
+        return interns.get(str);
     }
 
     public static void main(String[] args) throws IOException {
         KGFetcher fetcher = new KGFetcher();;
-        fetcher.loadFromTTL("ttls");
+        fetcher.loadFromTTL(args[0]);
     }
 }
