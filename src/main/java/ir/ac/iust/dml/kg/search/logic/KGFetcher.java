@@ -151,6 +151,7 @@ public class KGFetcher {
                     System.err.println("Lable for \"" + objectUri + "\" fetched from resourceExtractor is null/empty, trying DB");
                     objectLabel = fetchLabel(objectUri, false);
                 }*/
+
             } catch (Exception e) {
                 e.printStackTrace();
             }

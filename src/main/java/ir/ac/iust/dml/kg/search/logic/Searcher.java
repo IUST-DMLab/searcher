@@ -8,14 +8,22 @@ import ir.ac.iust.dml.kg.search.logic.data.SearchResult;
 import knowledgegraph.normalizer.PersianCharNormalizer;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Searcher {
 
+    private static final String BLACKLIST_FILE_NAME = "black_list.txt";
     private final IResourceExtractor extractor;
     private final KGFetcher kgFetcher;
     private static final PersianCharNormalizer normalizer = new PersianCharNormalizer();
+    private final Set<String> blacklist = new HashSet<String>();
+
+
 
     private static String semaphore = "Semaphore";
     private static Searcher instance;
@@ -31,6 +39,7 @@ public class Searcher {
 
     public Searcher() throws Exception {
         instance = this;
+        blacklist.addAll(Files.readAllLines(Paths.get(BLACKLIST_FILE_NAME)));
         extractor = setupNewExtractor();
         kgFetcher = new KGFetcher();
     }
@@ -58,11 +67,13 @@ public class Searcher {
                     })
                     .filter(r -> r.getIri() != null)
                     .filter(Util.distinctByKey(Resource::getIri)) //distinct by Iri
+                    .filter(r -> !blacklist.contains(r.getIri()))
                     .collect(Collectors.toList());
 
             List<Resource> properties = allMatchedResources.stream()
                     .filter(r -> r.getType() != null)
                     .filter(r -> r.getType().toString().contains("Property"))
+                    .filter(r -> !blacklist.contains(r.getIri()))
                     .collect(Collectors.toList());
 
             /*List<Resource> allEntities = allMatchedResources.stream()
@@ -79,12 +90,14 @@ public class Searcher {
                         else r.setLabel(r.getLabel() + " (ابهام‌زدایی شده)");
                         return r;
                     })
+                    .filter(r -> !blacklist.contains(r.getIri()))
                     .collect(Collectors.toList());
 
             List<Resource> entities = matchedResourcesUnfiltered.stream()
                     .filter(mR -> mR.getSubsetOf() == null) //for entities, remove Subsets
                     .filter(mR -> mR.getResource() != null)
                     .map(MatchedResource::getResource)
+                    .filter(r -> !blacklist.contains(r.getIri()))
                     .collect(Collectors.toList());
 
             entities.addAll(disambiguatedResources);
@@ -165,8 +178,10 @@ public class Searcher {
      */
     private void doManualCorrections(List<Resource> properties, String queryText) {
         if((queryText.contains("فیلم") ||  queryText.contains("سریال"))
-                && properties.stream().noneMatch(r -> r.getIri().contains("ontology/starring")))
-            properties.add(new Resource("http://fkg.iust.ac.ir/ontology/starring","فیلم‌"));
+                && properties.stream().noneMatch(r -> r.getIri().contains("ontology/starring"))) {
+            properties.add(new Resource("http://fkg.iust.ac.ir/ontology/starring", "فیلم‌"));
+            properties.add(new Resource("http://fkg.iust.ac.ir/ontology/director","کارگردان"));
+        }
 
         if((queryText.contains("درامد") ||  queryText.contains("درآمد"))
                 && properties.stream().noneMatch(r -> r.getIri().contains("ontology/revenue")))
@@ -242,6 +257,8 @@ public class Searcher {
     public IResourceExtractor getExtractor() {
         return extractor;
     }
+
+
 
 // this line is for git sync test!
 
