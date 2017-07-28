@@ -1,10 +1,12 @@
 package ir.ac.iust.dml.kg.search.logic;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.*;
 import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
+import ir.ac.iust.dml.kg.search.logic.data.Triple;
 import ir.ac.iust.dml.kg.virtuoso.jena.driver.VirtGraph;
-import javafx.util.Pair;
 
 import java.io.*;
 import java.util.*;
@@ -18,8 +20,8 @@ public class KGFetcher {
     private VirtGraph graph = null;
     private Model model = null;
     private static Map<String,String> interns = new ConcurrentHashMap<>(7*1000*1000);
-    private  Map<Pair<String,String>,List<String>> subjPropertyObjMap = new HashMap<>(13*1000*1000);
-    private  Map<Pair<String,String>, List<String>> objPropertySubjMap = new HashMap<>(13*1000*1000);
+    private Multimap<String, Triple> subjTripleMap = HashMultimap.create(2300*1000,1);
+    private Multimap<String, Triple> objTripleMap = HashMultimap.create(2300*1000,1);
 
     public KGFetcher() {
         System.err.println("Loading KGFetcher...");
@@ -201,11 +203,12 @@ public class KGFetcher {
             StmtIterator iter = model.listStatements();
             while ( iter.hasNext() ) {
                 Statement stmt = iter.next();
-                String s = stmt.getSubject().toString();
-                String p = stmt.getPredicate().toString();
-                String o = stmt.getObject().toString();
-                writeToMap(subjPropertyObjMap,s,p,o);
-                writeToMap(objPropertySubjMap,o,p,s);
+                String s = intern(stmt.getSubject().toString());
+                String p = intern(stmt.getPredicate().toString());
+                String o = intern(stmt.getObject().toString());
+                Triple triple = new Triple(s,p,o);
+                subjTripleMap.put(s,triple);
+                objTripleMap.put(o,triple);
                 //System.out.printf("%,d\t%s\t%s\t%s\t%s\n", ++count,file.toString(),s,p,o);
 
             }
@@ -230,20 +233,12 @@ public class KGFetcher {
         fileOut.close();
     }
 
-    private static void writeToMap(Map<Pair<String, String>, List<String>> map, String k1, String k2, String v) {
-        Pair<String, String> key = new Pair(intern(k1), intern(k2));
-        if(!map.containsKey(key))
-            map.put(key,new ArrayList<>());
-        if(!map.get(key).contains(v))
-            map.get(key).add(intern(v));
-    }
-
     /**
      * String deduplication.
      * @param str
      * @return
      */
-    private synchronized static String intern(String str){
+    private static String intern(String str){
         if(!interns.containsKey(str)) {
             interns.put(str,str);
         }
