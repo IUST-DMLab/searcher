@@ -228,11 +228,11 @@ public class KGFetcher {
     }
 
     private static void writeToMap(Map<Map.Entry<String, String>, List<String>> map, String k1, String k2, String v) {
-        AbstractMap.SimpleEntry<String, String> key = new AbstractMap.SimpleEntry(intern(k1), intern(k2));
+        AbstractMap.SimpleEntry<String, String> key = new AbstractMap.SimpleEntry(k1, k2);
         if(!map.containsKey(key))
             map.put(key,new ArrayList<>());
         if(!map.get(key).contains(v))
-            map.get(key).add(intern(v));
+            map.get(key).add(v);
     }
 
     /**
