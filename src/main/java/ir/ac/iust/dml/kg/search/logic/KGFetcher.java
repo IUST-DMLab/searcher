@@ -208,7 +208,8 @@ public class KGFetcher {
                 String o = intern(stmt.getObject().toString());
                 Triple triple = new Triple(s,p,o);
                 subjTripleMap.put(s,triple);
-                objTripleMap.put(o,triple);
+                if(o.contains("http://"))
+                    objTripleMap.put(o,triple);
                 //System.out.printf("%,d\t%s\t%s\t%s\t%s\n", ++count,file.toString(),s,p,o);
 
             }
@@ -217,15 +218,15 @@ public class KGFetcher {
         }
 
         System.out.printf("Finished in: %,d ms \n", System.currentTimeMillis() - t);
-        //serialize(subjPropertyObjMap,"subjPropertyObjMap.data");
-        System.out.printf("Finished subjPropertyObjMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
-        //serialize(objPropertySubjMap,"objPropertySubjMap.data");
-        System.out.printf("Finished objPropertySubjMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
+        serialize(subjTripleMap,"subjTripleMap.data");
+        System.out.printf("Finished subjTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
+        serialize(objTripleMap,"objTripleMap.data");
+        System.out.printf("Finished objTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
 
         interns.clear();
     }
 
-    private void serialize(Map<Map.Entry<String, String>, List<String>> obj, String filePath) throws IOException {
+    private void serialize(Object obj, String filePath) throws IOException {
         FileOutputStream fileOut = new FileOutputStream(filePath);
         ObjectOutputStream out = new ObjectOutputStream(fileOut);
         out.writeObject(obj);

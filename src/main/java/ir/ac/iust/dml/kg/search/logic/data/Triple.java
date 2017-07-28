@@ -1,6 +1,8 @@
 package ir.ac.iust.dml.kg.search.logic.data;
 
-public class Triple {
+import java.io.Serializable;
+
+public class Triple implements Serializable {
     private String subject;
     private String predicate;
     private String object;

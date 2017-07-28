@@ -40,12 +40,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-collections4</artifactId>
-            <version>4.1</version>
-        </dependency>
-
-        <dependency>
             <groupId>ir.ac.iust.dml.kg</groupId>
             <artifactId>utils</artifactId>
             <version>0.2.1</version>
