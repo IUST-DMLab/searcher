@@ -153,7 +153,8 @@ public class KGFetcher {
                 }*/
 
             } catch (Exception e) {
-                e.printStackTrace();
+                //e.printStackTrace();
+                System.err.println("No lablel found in ResourceExtractor for: " + objectUri);
             }
             if (objectLabel == null || objectLabel.isEmpty()) {
                 System.err.println("Lable for \"" + objectUri + "\" fetched from DB and/or resourceExtractor is null/empty, using Iri instead");
