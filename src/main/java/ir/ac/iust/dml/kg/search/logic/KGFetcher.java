@@ -159,8 +159,8 @@ public class KGFetcher {
                 objectLabel = objectUri;
             }
 
-            System.out.printf("++FOUND URI: %s" + objectUri);
-            System.out.printf("++FOUND LABEL: %s" + objectLabel);
+            System.out.println("++FOUND URI: " + objectUri);
+            System.out.println("++FOUND LABEL: " + objectLabel);
 
             matchedObjectLabels.put(objectUri.replace("@fa",""), objectLabel.replace("@fa",""));
         }
