@@ -1,16 +1,16 @@
 package ir.ac.iust.dml.kg.search.logic;
 
 import com.hp.hpl.jena.query.*;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.RDFNode;
-import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.*;
+import com.hp.hpl.jena.util.FileManager;
 import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
 import ir.ac.iust.dml.kg.virtuoso.jena.driver.VirtGraph;
+import org.apache.jena.tdb.TDBFactory;
+import org.apache.logging.log4j.core.util.SystemNanoClock;
 
-import java.io.FileNotFoundException;
-import java.util.Map;
-import java.util.TreeMap;
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -20,7 +20,8 @@ public class KGFetcher {
     private static final String KB_PREFIX = "http://fkg.iust.ac.ir/resource/";
     private VirtGraph graph = null;
     private Model model = null;
-    private  Map<Map.Entry<String,String>,String> subjPropertyObjMap = null;
+    private  Map<Map.Entry<String,String>,List<String>> subjPropertyObjMap = new HashMap<>();
+    private  Map<Map.Entry<String,String>, List<String>> objPropertySubjMap = new HashMap<>();
 
     public KGFetcher() {
         System.err.println("Loading KGFetcher...");
@@ -96,7 +97,7 @@ public class KGFetcher {
         return resultText;
     }
 
-    /**
+    /**s
      * Returns the (uri,label) pairs for each object statisfying subj-property-object-
      *
      * @param subjectUri
@@ -161,11 +162,8 @@ public class KGFetcher {
             //close connection
             try { qexec.close(); } catch (Throwable th) { th.printStackTrace(); }
         }
-
-
         return matchedObjectLabels;
     }
-
 
     public long fetchsubjPropertyObjRecords(long page, long pageSize) {
         String queryString =
@@ -193,13 +191,56 @@ public class KGFetcher {
         return recordNum;
     }
 
-    public static void main(String[] args) {
-        long pageSize = 100000;
-        KGFetcher fetcher = new KGFetcher();
-        long page = 0; //should start from 0;
-        long numLastFetchedResults = 0;
-        do {
-            numLastFetchedResults = fetcher.fetchsubjPropertyObjRecords(page++, pageSize);
-        }while(numLastFetchedResults != 0);
+    public void loadFromTTL(String folderPath) throws IOException {
+        File folder = new File(folderPath);
+        File[] files=folder.listFiles();
+        long count = 0;
+        long t = System.currentTimeMillis();
+        for(File file : files){
+            Model model=ModelFactory.createDefaultModel();
+            model.read(new FileInputStream(file.getAbsolutePath()),null,"TTL");
+            StmtIterator iter = model.listStatements();
+            while ( iter.hasNext() ) {
+                Statement stmt = iter.next();
+                String s = stmt.getSubject().toString();
+                String p = stmt.getPredicate().toString();
+                String o = stmt.getObject().toString();
+                writeToMap(subjPropertyObjMap,s,p,o);
+                writeToMap(objPropertySubjMap,o,p,s);
+                //System.out.printf("%,d\t%s\t%s\t%s\t%s\n", ++count,file.toString(),s,p,o);
+            }
+            if ( iter != null ) iter.close();
+            System.out.printf("Finished loading %s in %,d ms from beginning\n", file.getName(), System.currentTimeMillis() - t);
+        }
+        System.out.printf("Finished in: %,d ms \n", System.currentTimeMillis() - t);
+        serialize(subjPropertyObjMap,"subjPropertyObjMap.data");
+        System.out.printf("Finished subjPropertyObjMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
+        serialize(objPropertySubjMap,"objPropertySubjMap.data");
+        System.out.printf("Finished objPropertySubjMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
+    }
+
+    private void serialize(Map<Map.Entry<String, String>, List<String>> obj, String filePath) throws IOException {
+        FileOutputStream fileOut = new FileOutputStream(filePath);
+        ObjectOutputStream out = new ObjectOutputStream(fileOut);
+        out.writeObject(obj);
+        out.close();
+        fileOut.close();
+    }
+
+    private static void writeToMap(Map<Map.Entry<String, String>, List<String>> map, String k1, String k2, String v) {
+        AbstractMap.SimpleEntry<String, String> key = new AbstractMap.SimpleEntry(k1, k2);
+        if(!map.containsKey(key))
+            map.put(key,new LinkedList<>());
+        if(!map.get(key).contains(v))
+            map.get(key).add(v);
+    }
+
+    private void putInMap(Map<Long, List<String>> subjPropertyObjMap, String s, String s1, String s2) {
+
+    }
+
+    public static void main(String[] args) throws IOException {
+        KGFetcher fetcher = new KGFetcher();;
+        fetcher.loadFromTTL("ttls");
     }
 }

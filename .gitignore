@@ -1,6 +1,8 @@
 all.log*
 *.log
 /data/
+ttl/
+ttls/
 results/
 cache/
 
@@ -8,6 +10,7 @@ cache/
 
 ### Project data ###
 *.txt
+*.data
 *.json
 *.7z
 #*.jar
