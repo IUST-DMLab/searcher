@@ -11,26 +11,28 @@ import ir.ac.iust.dml.kg.virtuoso.jena.driver.VirtGraph;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Created by ali on 4/16/17.
  */
 public class KGFetcher {
     private static final String KB_PREFIX = "http://fkg.iust.ac.ir/resource/";
-    private VirtGraph graph = null;
+    //private VirtGraph graph = null;
     private Model model = null;
     private static Map<String,String> interns = new ConcurrentHashMap<>(7*1000*1000);
     private Multimap<String, Triple> subjTripleMap = HashMultimap.create(2300*1000,1);
     private Multimap<String, Triple> objTripleMap = HashMultimap.create(2300*1000,1);
 
-    public KGFetcher() {
+    public KGFetcher() throws IOException {
         System.err.println("Loading KGFetcher...");
         long t1 = System.currentTimeMillis();
         final String virtuosoServer = ConfigReader.INSTANCE.getString("virtuoso.address", "localhost:1111");
         final String virtuosoUser = ConfigReader.INSTANCE.getString("virtuoso.user", "dba");
         final String virtuosoPass = ConfigReader.INSTANCE.getString("virtuoso.password", "fkgVIRTUOSO2017");
-        graph = new VirtGraph("http://fkg.iust.ac.ir/new", "jdbc:virtuoso://" + virtuosoServer, virtuosoUser, virtuosoPass);
-        model = ModelFactory.createModelForGraph(graph);
+        //graph = new VirtGraph("http://fkg.iust.ac.ir/new", "jdbc:virtuoso://" + virtuosoServer, virtuosoUser, virtuosoPass);
+        //model = ModelFactory.createModelForGraph(graph);
+        loadFromTTL("ttls");
         System.err.printf("KGFetcher loaded in %,d ms\n", (System.currentTimeMillis() - t1));
     }
 
@@ -105,7 +107,7 @@ public class KGFetcher {
      */
     public Map<String, String> fetchSubjPropObjQuery(String subjectUri, String propertyUri) {
         Map<String, String> matchedObjectLabels = new TreeMap<String, String>();
-        String[] queryStrings = new String[2];
+       /* String[] queryStrings = new String[2];
         queryStrings[0] =
                 "SELECT ?o " + //?l " +
                         "WHERE {\n" +
@@ -134,33 +136,37 @@ public class KGFetcher {
                 System.err.println("HEY\nHEY\n  RESULT HAS NEXT!! \n\n HEY!!!!!!!");
                 final QuerySolution binding = results.nextSolution();
                 final RDFNode o = binding.get("o");
-                String objectUri = o.toString();
-                if(matchedObjectLabels.containsKey(objectUri))
-                    continue;
+                String objectUri = o.toString();*/
+        Set<String> objectUris = subjTripleMap.get(subjectUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getObject()).collect(Collectors.toSet());
+        Set<String> reverseMatchUris = objTripleMap.get(subjectUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getSubject()).collect(Collectors.toSet());
+        objectUris.addAll(reverseMatchUris);
+        for(String objectUri : objectUris){
+            if(matchedObjectLabels.containsKey(objectUri))
+                continue;
 
-                String objectLabel = objectUri;
-                try {
-                    objectLabel = Searcher.getInstance().getExtractor().getResourceByIRI(objectUri).getLabel();
-                    if (objectLabel == null || objectLabel.isEmpty()) {
-                        System.err.println("Lable for \"" + objectUri + "\" fetched from resourceExtractor is null/empty, trying DB");
-                        objectLabel = fetchLabel(objectUri, false);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                if (objectLabel == null || objectLabel.isEmpty()) {
-                    System.err.println("Lable for \"" + objectUri + "\" fetched from DB and/or resourceExtractor is null/empty, using Iri instead");
-                    objectLabel = objectUri;
-                }
-
-                System.out.printf("++FOUND URI: %s" + objectUri);
-                System.out.printf("++FOUND LABEL: %s" + objectLabel);
-
-                matchedObjectLabels.put(objectUri.replace("@fa",""), objectLabel.replace("@fa",""));
+            String objectLabel = objectUri;
+            try {
+                objectLabel = Searcher.getInstance().getExtractor().getResourceByIRI(objectUri).getLabel();
+                /*if (objectLabel == null || objectLabel.isEmpty()) {
+                    System.err.println("Lable for \"" + objectUri + "\" fetched from resourceExtractor is null/empty, trying DB");
+                    objectLabel = fetchLabel(objectUri, false);
+                }*/
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            //close connection
-            try { qexec.close(); } catch (Throwable th) { th.printStackTrace(); }
+            if (objectLabel == null || objectLabel.isEmpty()) {
+                System.err.println("Lable for \"" + objectUri + "\" fetched from DB and/or resourceExtractor is null/empty, using Iri instead");
+                objectLabel = objectUri;
+            }
+
+            System.out.printf("++FOUND URI: %s" + objectUri);
+            System.out.printf("++FOUND LABEL: %s" + objectLabel);
+
+            matchedObjectLabels.put(objectUri.replace("@fa",""), objectLabel.replace("@fa",""));
         }
+        //close connection
+            /*try { qexec.close(); } catch (Throwable th) { th.printStackTrace(); }*/
+        //}
         return matchedObjectLabels;
     }
 
@@ -211,18 +217,16 @@ public class KGFetcher {
                 if(o.contains("http://"))
                     objTripleMap.put(o,triple);
                 //System.out.printf("%,d\t%s\t%s\t%s\t%s\n", ++count,file.toString(),s,p,o);
-
+                count++;
             }
             if ( iter != null ) iter.close();
             System.out.printf("Finished loading %s in %,d ms from beginning\n", file.getName(), System.currentTimeMillis() - t);
         }
-
-        System.out.printf("Finished in: %,d ms \n", System.currentTimeMillis() - t);
-        serialize(subjTripleMap,"subjTripleMap.data");
+        System.out.printf("Finished loading %,d triples in %,d ms \n", count, System.currentTimeMillis() - t);
+        /*serialize(subjTripleMap,"subjTripleMap.data");
         System.out.printf("Finished subjTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
         serialize(objTripleMap,"objTripleMap.data");
-        System.out.printf("Finished objTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
-
+        System.out.printf("Finished objTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);*/
         interns.clear();
     }
 
