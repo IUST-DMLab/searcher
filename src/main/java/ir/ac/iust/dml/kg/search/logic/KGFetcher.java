@@ -191,6 +191,7 @@ public class KGFetcher {
     public void loadFromTTL(String folderPath) throws IOException {
         File folder = new File(folderPath);
         File[] files=folder.listFiles();
+        Arrays.stream(files).forEach(System.out::println);
         long count = 0;
         long t = System.currentTimeMillis();
         Arrays.stream(files).parallel().forEach(file -> {
