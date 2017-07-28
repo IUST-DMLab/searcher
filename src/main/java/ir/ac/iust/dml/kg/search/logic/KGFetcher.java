@@ -204,17 +204,17 @@ public class KGFetcher {
                 String s = stmt.getSubject().toString();
                 String p = stmt.getPredicate().toString();
                 String o = stmt.getObject().toString();
-                writeToMap(subjPropertyObjMap,s,p,o);
-                writeToMap(objPropertySubjMap,o,p,s);
-                //System.out.printf("%,d\t%s\t%s\t%s\t%s\n", ++count,file.toString(),s,p,o);
+                //writeToMap(subjPropertyObjMap,s,p,o);
+                //writeToMap(objPropertySubjMap,o,p,s);
+                System.out.printf("%,d\t%s\t%s\t%s\t%s\n", ++count,file.toString(),s,p,o);
             }
             if ( iter != null ) iter.close();
             System.out.printf("Finished loading %s in %,d ms from beginning\n", file.getName(), System.currentTimeMillis() - t);
         }
         System.out.printf("Finished in: %,d ms \n", System.currentTimeMillis() - t);
-        serialize(subjPropertyObjMap,"subjPropertyObjMap.data");
+        //serialize(subjPropertyObjMap,"subjPropertyObjMap.data");
         System.out.printf("Finished subjPropertyObjMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
-        serialize(objPropertySubjMap,"objPropertySubjMap.data");
+        //serialize(objPropertySubjMap,"objPropertySubjMap.data");
         System.out.printf("Finished objPropertySubjMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
         interns.clear();
     }
