@@ -223,7 +223,7 @@ public class KGFetcher {
         //serialize(objPropertySubjMap,"objPropertySubjMap.data");
         System.out.printf("Finished objPropertySubjMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
 
-        System.out.printf("s:%,d\tp:%,d\to:%,d\ttotal strings:%,d\n", subjects.size(),predicates.size(),objects.size(),interns.toString());
+        System.out.printf("s:%,d\tp:%,d\to:%,d\ttotal strings:%,d\n", subjects.size(),predicates.size(),objects.size(),interns.size());
 
         interns.clear();
     }
