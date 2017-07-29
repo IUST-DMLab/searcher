@@ -220,6 +220,8 @@ public class Searcher {
                     if (wikiPage != null)
                         resultEntity.setLink(wikiPage);*/
 
+        resultEntity.setPhotoUrls(kgFetcher.fetchPhotoUrls(resource.getIri()));
+        
         if (resource.getType() != null) {
             String type = "Type: " + resource.getType().toString();
             if (resource.getType() == ResourceType.Property) {
