@@ -123,6 +123,7 @@ public class Searcher {
                             resultEntity.setReferenceUri(subjectR.getIri());
                             resultEntity.setTitle(olEntry.getValue());
                             resultEntity.setDescription("نتیجه‌ی گزاره‌ای");
+                            resultEntity.setPhotoUrls(kgFetcher.fetchPhotoUrls(resultEntity.getLink()));
                             resultEntity.setResultType(ResultEntity.ResultType.RelationalResult);
                             if (!(Strings.isNullOrEmpty(subjectR.getLabel()) || Strings.isNullOrEmpty(propertyR.getLabel()))) {
                                 resultEntity.setDescription(resultEntity.getDescription() + ": [" + subjectR.getLabel() + "] / [" + propertyR.getLabel() + "]");

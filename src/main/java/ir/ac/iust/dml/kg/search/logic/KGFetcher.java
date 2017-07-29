@@ -21,8 +21,8 @@ public class KGFetcher {
     //private VirtGraph graph = null;
     private Model model = null;
     private static Map<String,String> interns = new ConcurrentHashMap<>(7*1000*1000);
-    private Multimap<String, Triple> subjTripleMap = HashMultimap.create(2300*1000,1);
-    private Multimap<String, Triple> objTripleMap = HashMultimap.create(2300*1000,1);
+    public Multimap<String, Triple> subjTripleMap = HashMultimap.create(2300*1000,1);
+    public Multimap<String, Triple> objTripleMap = HashMultimap.create(2300*1000,1);
 
     public KGFetcher() throws IOException {
         System.err.println("Loading KGFetcher...");
@@ -255,5 +255,17 @@ public class KGFetcher {
     public static void main(String[] args) throws IOException {
         KGFetcher fetcher = new KGFetcher();;
         fetcher.loadFromTTL(args[0]);
+    }
+
+    public List<String> fetchPhotoUrls(String link) {
+        List<String> photos = new ArrayList<>();
+        try{
+            subjTripleMap.get(link).stream()
+                    .filter(t -> t.getPredicate().equals("http://fkg.iust.ac.ir/ontology/picture"))
+                    .forEach(t -> photos.add(t.getObject()));
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return photos;
     }
 }
