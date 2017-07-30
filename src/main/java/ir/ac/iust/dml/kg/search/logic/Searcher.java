@@ -119,7 +119,8 @@ public class Searcher {
                         for (Map.Entry<String, String> olEntry : objectLables.entrySet()) {
                             System.out.printf("Object: %s\t%s\n", olEntry.getKey(), olEntry.getValue());
                             ResultEntity resultEntity = new ResultEntity();
-                            resultEntity.setLink(olEntry.getKey());
+                            if(olEntry.getKey().startsWith("http"))
+                                resultEntity.setLink(olEntry.getKey());
                             resultEntity.setReferenceUri(subjectR.getIri());
                             resultEntity.setTitle(olEntry.getValue());
                             resultEntity.setDescription("نتیجه‌ی گزاره‌ای");
@@ -221,7 +222,7 @@ public class Searcher {
                         resultEntity.setLink(wikiPage);*/
 
         resultEntity.setPhotoUrls(kgFetcher.fetchPhotoUrls(resource.getIri()));
-        
+
         if (resource.getType() != null) {
             String type = "Type: " + resource.getType().toString();
             if (resource.getType() == ResourceType.Property) {
