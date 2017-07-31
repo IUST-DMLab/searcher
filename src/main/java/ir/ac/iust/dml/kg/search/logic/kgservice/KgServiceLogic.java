@@ -1,7 +1,7 @@
 package ir.ac.iust.dml.kg.search.logic.kgservice;
 
 import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
-import ir.ac.iust.dml.kg.raw.utils.PrefixService;
+import ir.ac.iust.dml.kg.raw.utils.URIs;
 import ir.ac.iust.dml.kg.search.logic.kgservice.data.*;
 import ir.ac.iust.dml.kg.virtuoso.connector.VirtuosoConnector;
 import ir.ac.iust.dml.kg.virtuoso.connector.data.VirtuosoTriple;
@@ -12,13 +12,6 @@ import java.util.List;
 public class KgServiceLogic {
 
     private final VirtuosoConnector connector;
-
-    private final String SUBCLASS = PrefixService.INSTANCE.prefixToUri(PrefixService.INSTANCE.getSUB_CLASS_OF());
-    private final String LABEL = PrefixService.INSTANCE.prefixToUri(PrefixService.INSTANCE.getLABEL_URL());
-    private final String DOMAIN = PrefixService.INSTANCE.prefixToUri(PrefixService.INSTANCE.getPROPERTY_DOMAIN_URL());
-    private final String INSTANCE_OF = PrefixService.INSTANCE.prefixToUri(PrefixService.INSTANCE.getINSTANCE_OF_URL());
-    private final String TYPE = PrefixService.INSTANCE.prefixToUri(PrefixService.INSTANCE.getTYPE_URL());
-    private final String TYPE_OF_ALL_RES = PrefixService.INSTANCE.prefixToUri(PrefixService.INSTANCE.getTYPE_OF_ALL_RESOURCES());
 
     public KgServiceLogic() {
         System.err.println("Loading KgServiceLogic ...");
@@ -32,7 +25,7 @@ public class KgServiceLogic {
 
     private String getLabel(String url) {
         if (url == null) return null;
-        final List<VirtuosoTriple> parent = connector.getTriples(url, LABEL);
+      final List<VirtuosoTriple> parent = connector.getTriples(url, URIs.INSTANCE.getLabel());
         if (parent == null || parent.isEmpty() || parent.get(0).getObject() == null) return null;
         final Object label = parent.get(0).getObject().getValue();
         if (label == null) return null;
@@ -40,14 +33,14 @@ public class KgServiceLogic {
     }
 
     public ParentNode getParent(String childUrl) {
-        final List<VirtuosoTriple> parent = connector.getTriples(childUrl, SUBCLASS);
+      final List<VirtuosoTriple> parent = connector.getTriples(childUrl, URIs.INSTANCE.getSubClassOf());
         if (parent == null || parent.isEmpty() || parent.get(0).getObject() == null) return null;
         final String parentUrl = parent.get(0).getObject().getValue().toString();
         return new ParentNode(parentUrl, getLabel(parentUrl));
     }
 
     public ChildNodes getChildren(String parentUrl) {
-        final List<VirtuosoTriple> children = connector.getTriplesOfObject(SUBCLASS, parentUrl);
+      final List<VirtuosoTriple> children = connector.getTriplesOfObject(URIs.INSTANCE.getSubClassOf(), parentUrl);
         if (children == null || children.isEmpty()) return null;
         final ChildNodes result = new ChildNodes();
         for (VirtuosoTriple triple : children) {
@@ -59,7 +52,7 @@ public class KgServiceLogic {
 
     public ClassInfo getClassInfo(String url) {
         final ClassInfo classData = new ClassInfo(getLabel(url));
-        final List<VirtuosoTriple> triples = connector.getTriplesOfObject(DOMAIN, url);
+      final List<VirtuosoTriple> triples = connector.getTriplesOfObject(URIs.INSTANCE.getPropertyDomain(), url);
         if (triples == null || triples.isEmpty()) return null;
         for (VirtuosoTriple triple : triples) {
             if (triple.getPredicate() == null || triple.getSource() == null) continue;
@@ -92,7 +85,7 @@ public class KgServiceLogic {
     public Entities getEntitiesOfClass(String classUrl, int page, int pageSize) {
         if (pageSize > 1000) pageSize = 1000;
         final Entities entities = new Entities();
-        final List<VirtuosoTriple> triples = connector.getTriplesOfObject(TYPE, classUrl, page, pageSize);
+      final List<VirtuosoTriple> triples = connector.getTriplesOfObject(URIs.INSTANCE.getType(), classUrl, page, pageSize);
         if (triples == null) return null;
         for (VirtuosoTriple triple : triples) {
             if (triple.getPredicate() == null || triple.getSource() == null) continue;
@@ -105,16 +98,16 @@ public class KgServiceLogic {
 
     public EntityClasses getEntityClasses(String url) {
         final EntityClasses entityClasses = new EntityClasses();
-        List<VirtuosoTriple> triples = connector.getTriples(url, INSTANCE_OF);
+      List<VirtuosoTriple> triples = connector.getTriples(url, URIs.INSTANCE.getInstanceOf());
         if (triples == null || triples.isEmpty() || triples.get(0).getObject() == null
             || triples.get(0).getObject().getValue() == null) return null;
         entityClasses.setMainClass(triples.get(0).getObject().getValue().toString());
-        triples = connector.getTriples(url, TYPE);
+      triples = connector.getTriples(url, URIs.INSTANCE.getType());
         for (VirtuosoTriple triple : triples) {
             if (triple.getPredicate() == null || triple.getObject() == null || triple.getObject().getValue() == null)
                 continue;
             final String c = triple.getObject().getValue().toString();
-            if (!c.equals(TYPE_OF_ALL_RES))
+          if (!c.equals(URIs.INSTANCE.getTypeOfAllResources()))
                 entityClasses.getClassTree().add(c);
         }
         return entityClasses;
