@@ -23,6 +23,22 @@ public class KGFetcher {
     public Multimap<String, Triple> subjTripleMap = HashMultimap.create(2300*1000,1);
     public Multimap<String, Triple> objTripleMap = HashMultimap.create(2300*1000,1);
 
+
+    public double getRank(String uri){
+        double rank = 0;
+
+        if(uri == null || !uri.startsWith("http://"))
+            return 0;
+
+        if(subjTripleMap.containsKey(uri))
+            rank += subjTripleMap.get(uri).size();
+
+        if(objTripleMap.containsKey(uri))
+            rank += objTripleMap.get(uri).size();
+
+        return rank;
+    }
+
     public KGFetcher() throws IOException {
         System.err.println("Loading KGFetcher...");
         long t1 = System.currentTimeMillis();

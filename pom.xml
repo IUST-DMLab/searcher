@@ -137,6 +137,11 @@
             <artifactId>utils</artifactId>
             <version>0.2.3</version>
         </dependency>
+        <dependency>
+            <groupId>ir.ac.iust.dml.kg</groupId>
+            <artifactId>utils</artifactId>
+            <version>0.2.1</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.11 -->
 
 

@@ -104,7 +104,9 @@ public class Searcher {
                     .filter(r -> !properties.contains(r))
                     .filter(r -> r.getIri() != null)
                     .filter(Util.distinctByKey(Resource::getIri)) //distinct by Iri
+                    .sorted((o1, o2) -> ((Double) kgFetcher.getRank(o1.getIri())).compareTo(kgFetcher.getRank(o2.getIri())))
                     .collect(Collectors.toList());
+
 
             // وای وای چه کار زشتی!
             doManualCorrections(properties,queryText);
@@ -154,6 +156,8 @@ public class Searcher {
                     e.printStackTrace();
                 }
             }
+
+
 
 
             for(ResultEntity r : result.getEntities()) {
