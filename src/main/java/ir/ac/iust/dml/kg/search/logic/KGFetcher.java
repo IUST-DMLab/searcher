@@ -6,7 +6,6 @@ import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.*;
 import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
 import ir.ac.iust.dml.kg.search.logic.data.Triple;
-import ir.ac.iust.dml.kg.virtuoso.jena.driver.VirtGraph;
 
 import java.io.*;
 import java.util.*;
@@ -103,9 +102,10 @@ public class KGFetcher {
      * Returns the (uri,label) pairs for each object statisfying subj-property-object-
      * @param subjectUri
      * @param propertyUri
+     * @param searchDirection
      * @return
      */
-    public Map<String, String> fetchSubjPropObjQuery(String subjectUri, String propertyUri) {
+    public Map<String, String> fetchSubjPropObjQuery(String subjectUri, String propertyUri, SearchDirection searchDirection) {
         Map<String, String> matchedObjectLabels = new TreeMap<String, String>();
        /* String[] queryStrings = new String[2];
         queryStrings[0] =
@@ -137,10 +137,13 @@ public class KGFetcher {
                 final QuerySolution binding = results.nextSolution();
                 final RDFNode o = binding.get("o");
                 String objectUri = o.toString();*/
-        Set<String> objectUris = subjTripleMap.get(subjectUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getObject()).collect(Collectors.toSet());
-        Set<String> reverseMatchUris = objTripleMap.get(subjectUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getSubject()).collect(Collectors.toSet());
-        objectUris.addAll(reverseMatchUris);
-        for(String objectUri : objectUris){
+        Set<String> resultUris = new LinkedHashSet<>();
+        if(searchDirection == SearchDirection.SUBJ_PROP || searchDirection == SearchDirection.BOTH)
+            resultUris.addAll(subjTripleMap.get(subjectUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getObject()).collect(Collectors.toSet()));
+        if(searchDirection == SearchDirection.PROP_SUBJ || searchDirection == SearchDirection.BOTH)
+            resultUris.addAll(objTripleMap.get(subjectUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getSubject()).collect(Collectors.toSet()));
+
+        for(String objectUri : resultUris){
             if(matchedObjectLabels.containsKey(objectUri))
                 continue;
 

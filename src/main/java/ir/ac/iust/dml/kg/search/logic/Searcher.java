@@ -7,20 +7,19 @@ import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.SearchResult;
 import knowledgegraph.normalizer.PersianCharNormalizer;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Searcher {
-
     private static final String BLACKLIST_FILE_NAME = "black_list.txt";
     private final IResourceExtractor extractor;
     private final KGFetcher kgFetcher;
-    private static final PersianCharNormalizer normalizer = new PersianCharNormalizer();
+    private static final PersianCharNormalizer normalizer = customizeNormalizer();
+
+
+
     private final Set<String> blacklist = new HashSet<String>();
 
 
@@ -50,7 +49,7 @@ public class Searcher {
         System.out.println(new Date() + " PROCESSING QUERY: " + keyword);
         //Answering predicate-subject phrases
         try {
-            List<MatchedResource> matchedResourcesUnfiltered = extractor.search(queryText, false);
+            List<MatchedResource> matchedResourcesUnfiltered = extractor.search(queryText, true);
 
             List<Resource> allMatchedResources = matchedResourcesUnfiltered.stream()
                     .flatMap(mR -> {
@@ -114,7 +113,7 @@ public class Searcher {
                 for (Resource propertyR : properties) {
                     try {
                         System.out.println("Trying combinatios for " + subjectR.getIri() + "\t & \t" + propertyR.getIri());
-                        Map<String, String> objectLables = kgFetcher.fetchSubjPropObjQuery(subjectR.getIri(), propertyR.getIri());
+                        Map<String, String> objectLables = kgFetcher.fetchSubjPropObjQuery(subjectR.getIri(), propertyR.getIri(),selectDirection(subjectR.getIri(),propertyR.getIri(),queryText));
                         System.out.println("\t RESULTS FOUND: " + objectLables.keySet().size());
                         for (Map.Entry<String, String> olEntry : objectLables.entrySet()) {
                             System.out.printf("Object: %s\t%s\n", olEntry.getKey(), olEntry.getValue());
@@ -167,9 +166,13 @@ public class Searcher {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
         return result;
+    }
+
+    private SearchDirection selectDirection(String subjectIri, String propertyIri, String queryText) {
+        if(propertyIri.contains("ontology/starring") || propertyIri.contains("ontology/Province"))
+            return SearchDirection.BOTH;
+        return SearchDirection.SUBJ_PROP;
     }
 
     /**
@@ -262,7 +265,17 @@ public class Searcher {
         return extractor;
     }
 
+    private static PersianCharNormalizer customizeNormalizer() {
+        List<PersianCharNormalizer.Option> options = new ArrayList<>();
 
+        options.add(PersianCharNormalizer.Option.NORMAL_HE);
+        options.add(PersianCharNormalizer.Option.NORMAL_KAF);
+        options.add(PersianCharNormalizer.Option.NORMAL_NUMBERS);
+        options.add(PersianCharNormalizer.Option.NORMAL_WAW);
+        options.add(PersianCharNormalizer.Option.NORMAL_YEH);
+
+        return new PersianCharNormalizer(options);
+    }
 
 // this line is for git sync test!
 
