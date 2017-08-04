@@ -117,7 +117,7 @@ public class Searcher {
                         System.out.println("Trying combinatios for " + subjectR.getIri() + "\t & \t" + propertyR.getIri());
                         Map<String, String> objectLables = kgFetcher.fetchSubjPropObjQuery(subjectR.getIri(), propertyR.getIri(),selectDirection(subjectR.getIri(),propertyR.getIri(),queryText));
                         System.out.println("\t RESULTS FOUND: " + objectLables.keySet().size());
-                        for (Map.Entry<String, String> olEntry : objectLables.entrySet()) {
+                        for (Map.Entry<String, String> olEntry : objectLables.entrySet().stream().sorted((o1, o2) -> ((Double) kgFetcher.getRank(o2.getKey())).compareTo(kgFetcher.getRank(o1.getKey()))).collect(Collectors.toList())) {
                             System.out.printf("Object: %s\t%s\n", olEntry.getKey(), olEntry.getValue());
                             ResultEntity resultEntity = new ResultEntity();
                             if(olEntry.getKey().startsWith("http"))
