@@ -39,11 +39,6 @@
     </build>
 
     <dependencies>
-        <dependency>
-            <groupId>ir.ac.iust.dml.kg</groupId>
-            <artifactId>utils</artifactId>
-            <version>0.2.1</version>
-        </dependency>
         <!-- Logging with SLF4J & LogBack -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -76,6 +71,11 @@
                 <!--<artifactId>log4j-1.2-api</artifactId>-->
                 <!--</exclusion>-->
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>ir.ac.iust.dml.kg</groupId>
+            <artifactId>utils</artifactId>
+            <version>0.2.3</version>
         </dependency>
         <dependency>
             <groupId>ir.ac.iust.dml.kg</groupId>
@@ -132,16 +132,7 @@
             <artifactId>commons-collections4</artifactId>
             <version>4.1</version>
         </dependency>
-        <dependency>
-            <groupId>ir.ac.iust.dml.kg</groupId>
-            <artifactId>utils</artifactId>
-            <version>0.2.3</version>
-        </dependency>
-        <dependency>
-            <groupId>ir.ac.iust.dml.kg</groupId>
-            <artifactId>utils</artifactId>
-            <version>0.2.1</version>
-        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.11 -->
 
 
