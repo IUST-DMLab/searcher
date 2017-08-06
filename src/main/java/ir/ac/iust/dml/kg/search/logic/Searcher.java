@@ -70,8 +70,10 @@ public class Searcher {
                     .collect(Collectors.toList());
 
             List<Resource> properties = allMatchedResources.stream()
-                    .filter(r -> r.getType() != null)
-                    .filter(r -> r.getType().toString().contains("Property"))
+                    /*.filter(r -> r.getType() != null)
+                    .filter(r -> r.getType().toString().contains("Property"))*/
+                    .filter(r -> (r.getType() != null && r.getType().toString().contains("Property"))
+                            || (r.getIri()!= null && r.getIri().contains("/ontology/")))
                     .filter(r -> !blacklist.contains(r.getIri()))
                     .collect(Collectors.toList());
 
@@ -174,10 +176,10 @@ public class Searcher {
     }
 
     private SearchDirection selectDirection(String subjectIri, String propertyIri, String queryText) {
-        return SearchDirection.BOTH;
-        /*if(propertyIri.contains("ontology/starring") || propertyIri.contains("ontology/Province"))
+        //return SearchDirection.BOTH;
+        if(propertyIri.contains("ontology/starring") || propertyIri.contains("ontology/Province"))
             return SearchDirection.BOTH;
-        return SearchDirection.SUBJ_PROP;*/
+        return SearchDirection.SUBJ_PROP;
     }
 
     /**
