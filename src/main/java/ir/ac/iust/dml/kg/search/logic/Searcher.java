@@ -163,17 +163,15 @@ public class Searcher {
             for (Resource entity : finalEntities) {
                 try {
                     ResultEntity resultEntity = matchedResourceToResultEntity(entity);
-                    if (uriOfEntities.contains(resultEntity.getLink()))
+                    if (uriOfEntities.contains(purify(resultEntity.getLink())))
                         continue;
-                    uriOfEntities.add(resultEntity.getLink());
+                    uriOfEntities.add(purify(resultEntity.getLink()));
                     result.getEntities().add(resultEntity);
                     result.getEntities().addAll(getRecommendations(resultEntity.getLink(),MAX_RECOMMENDATIONS));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-
-
 
             for(ResultEntity r : result.getEntities()) {
                 if (r.getLink() != null && r.getLink().contains(")"))
@@ -188,6 +186,10 @@ public class Searcher {
             e.printStackTrace();
         }
         return result;
+    }
+
+    private String purify(String uri){
+        return uri.trim().replaceAll("[ ‌_ـ]","");
     }
 
 
