@@ -73,6 +73,9 @@ public class Searcher {
                             return r;
                         }).collect(Collectors.toList());
 
+                        System.out.println("\n\nList Members before filtering:");
+                        list.stream().forEach(r -> System.err.println("\t" + r.getIri()));
+
                         //if there is a detected property, skip all other entities
                         if(list.stream().anyMatch(r -> r.getType() != null && r.getType().toString().contains("Property")))
                             return list.stream().filter(r -> r.getType() != null && r.getType().toString().contains("Property"));
@@ -84,28 +87,39 @@ public class Searcher {
                     .filter(r -> !blacklist.contains(r.getIri()))
                     .collect(Collectors.toList());
 
+            System.out.println("\n\nallMatchedResources:");
+            allMatchedResources.stream().forEach(r -> System.err.println("\t" + r.getIri()));
+
+
             List<Resource> properties = allMatchedResources.stream()
                     .filter(r -> r.getType() != null)
                     .filter(r -> r.getType().toString().contains("Property"))
                     .filter(r -> !blacklist.contains(r.getIri()))
                     .collect(Collectors.toList());
 
+            System.out.println("\n\nproperties:");
+            properties.stream().forEach(r -> System.err.println("\t" + r.getIri()));
+
+
             /*List<Resource> allEntities = allMatchedResources.stream()
                     .filter(r -> r.getType() != null)
                     .filter(r -> !properties.contains(r))
                     .collect(Collectors.toList());*/
 
-            /*List<Resource> disambiguatedResources = matchedResourcesUnfiltered.stream()
+            List<Resource> disambiguatedResources = matchedResourcesUnfiltered.stream()
                     .filter(mR -> mR.getSubsetOf() == null) //for entities, remove Subsets
                     .filter(mR -> mR.getAmbiguities() != null && mR.getAmbiguities().size() > 0)
                     .flatMap(mR -> mR.getAmbiguities().stream())
                     .map(r -> {
                         if (Strings.isNullOrEmpty(r.getLabel())) r.setLabel(Util.iriToLabel(r.getIri()));
-                        else r.setLabel(r.getLabel() *//*+ " (ابهام‌زدایی شده)"*//*);
+                        else r.setLabel(r.getLabel() /*+ " (ابهام‌زدایی شده)"*/);
                         return r;
                     })
                     .filter(r -> !blacklist.contains(r.getIri()))
-                    .collect(Collectors.toList());*/
+                    .collect(Collectors.toList());
+
+            System.out.println("\n\ndisambiguatedResources:");
+            disambiguatedResources.stream().forEach(r -> System.err.println("\t" + r.getIri()));
 
             List<Resource> entities = matchedResourcesUnfiltered.stream()
                     .filter(mR -> mR.getSubsetOf() == null) //for entities, remove Subsets
@@ -114,7 +128,10 @@ public class Searcher {
                     .filter(r -> !blacklist.contains(r.getIri()))
                     .collect(Collectors.toList());
 
-            //entities.addAll(disambiguatedResources);
+            System.out.println("\n\nentities:");
+            entities.stream().forEach(r -> System.err.println("\t" + r.getIri()));
+
+            entities.addAll(disambiguatedResources);
             List<Resource> finalEntities = entities.stream()
                     .filter(r -> !properties.contains(r))
                     .filter(r -> r.getIri() != null)
@@ -122,11 +139,14 @@ public class Searcher {
                     .sorted((o1, o2) -> ((Double) kgFetcher.getRank(o2.getIri())).compareTo(kgFetcher.getRank(o1.getIri())))
                     .collect(Collectors.toList());
 
+            System.out.println("\n\nfinalEntities:");
+            finalEntities.stream().forEach(r -> System.err.println("\t" + r.getIri()));
+
 
             // وای وای چه کار زشتی!
             doManualCorrections(properties,queryText);
 
-            for (Resource subjectR : entities) {
+            for (Resource subjectR : finalEntities) {
                 for (Resource propertyR : properties) {
                     try {
                         System.out.println("Trying combinatios for " + subjectR.getIri() + "\t & \t" + propertyR.getIri());
