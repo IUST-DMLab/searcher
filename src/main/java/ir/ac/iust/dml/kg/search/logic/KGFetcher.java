@@ -91,7 +91,7 @@ public class KGFetcher {
             if (results.hasNext())
                 resultText += "، ";
         }
-        resultText = resultText.replaceAll("@fa", "");
+        resultText = resultText.replaceAll("@fa", "").replaceAll("@en", "");
         if (resultText.equals(""))
             resultText = Util.iriToLabel(uri);
 
@@ -199,7 +199,7 @@ public class KGFetcher {
             System.out.println("++FOUND URI: " + objectUri);
             System.out.println("++FOUND LABEL: " + objectLabel);
 
-            matchedObjectLabels.put(objectUri.replace("@fa",""), objectLabel.replace("@fa",""));
+            matchedObjectLabels.put(objectUri.replace("@fa","").replaceAll("@en", ""), objectLabel.replace("@fa","").replaceAll("@en", ""));
         }
         //close connection
             /*try { qexec.close(); } catch (Throwable th) { th.printStackTrace(); }*/

@@ -1,8 +1,6 @@
 package ir.ac.iust.dml.kg.search.logic;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.Multisets;
 import ir.ac.iust.dml.kg.resource.extractor.*;
 import ir.ac.iust.dml.kg.resource.extractor.tree.TreeResourceExtractor;
 import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
@@ -178,7 +176,7 @@ public class Searcher {
 
 
             for(ResultEntity r : result.getEntities()) {
-                if (r.getLink().contains(")"))
+                if (r.getLink() != null && r.getLink().contains(")"))
                     r.setTitle(Util.iriToLabel(r.getLink()));
                 if(r.getTitle().contains("/"))
                     r.setTitle(Util.iriToLabel(r.getTitle()));
@@ -204,8 +202,8 @@ public class Searcher {
                 ResultEntity result = new ResultEntity();
                 //String iri = weightedUri.getElement();
                 result.setLink(recom.getUri());
-                result.setTitle(Util.iriToLabel(uri));
-                result.setPhotoUrls(kgFetcher.fetchPhotoUrls(uri));
+                result.setTitle(Util.iriToLabel(recom.getUri()));
+                result.setPhotoUrls(kgFetcher.fetchPhotoUrls(recom.getUri()));
                 result.setDescription("موجودیت‌های مرتبط با " + Util.iriToLabel(uri));
                 result.setResultType(ResultEntity.ResultType.Similar);
                 results.add(result);
