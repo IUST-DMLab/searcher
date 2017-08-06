@@ -7,6 +7,7 @@ import ir.ac.iust.dml.kg.resource.extractor.*;
 import ir.ac.iust.dml.kg.resource.extractor.tree.TreeResourceExtractor;
 import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.SearchResult;
+import ir.ac.iust.dml.kg.search.logic.recommendation.Recommendation;
 import knowledgegraph.normalizer.PersianCharNormalizer;
 
 import java.nio.file.Files;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class Searcher {
     private static final String BLACKLIST_FILE_NAME = "black_list.txt";
-    private static final int MAX_RECOMMENDATIONS = 5;
+    private static final int MAX_RECOMMENDATIONS = 20;
     private final IResourceExtractor extractor;
     private final KGFetcher kgFetcher;
     private static final PersianCharNormalizer normalizer = customizeNormalizer();
@@ -67,12 +68,12 @@ public class Searcher {
 
                         //TODO: to be refurbished
                         list = list.stream().map(r ->
-                                {
-                                    if(r.getIri() != null && (r.getIri().contains("/ontology/") || r.getIri().contains("/property/"))
-                                            && (r.getType() == null || !r.getType().toString().contains("Property")) )
-                                        r.setType(ResourceType.Property);
-                                        return r;
-                                }).collect(Collectors.toList());
+                        {
+                            if(r.getIri() != null && (r.getIri().contains("/ontology/") || r.getIri().contains("/property/"))
+                                    && (r.getType() == null || !r.getType().toString().contains("Property")) )
+                                r.setType(ResourceType.Property);
+                            return r;
+                        }).collect(Collectors.toList());
 
                         //if there is a detected property, skip all other entities
                         if(list.stream().anyMatch(r -> r.getType() != null && r.getType().toString().contains("Property")))
@@ -194,20 +195,23 @@ public class Searcher {
 
     public Collection<ResultEntity> getRecommendations(String uri,int max) {
         System.out.println("Searcher: Computing recommendations for: " + uri);
-        Multiset<String> recomUris = kgFetcher.getRecommendationsUri(uri);
+        //Multiset<String> recomUris = kgFetcher.getRecommendationsUri(uri);
         List<ResultEntity> results = new ArrayList<>();
-        int count = 0;
-        for(Multiset.Entry<String> weightedUri : Multisets.copyHighestCountFirst(recomUris).entrySet()){
-            ResultEntity result = new ResultEntity();
-            String iri = weightedUri.getElement();
-            result.setLink(iri);
-            result.setTitle(Util.iriToLabel(iri));
-            result.setPhotoUrls(kgFetcher.fetchPhotoUrls(iri));
-            result.setDescription("موجودیت‌های مرتبط با " + Util.iriToLabel(uri));
-            result.setResultType(ResultEntity.ResultType.Similar);
-            results.add(result);
-            if(++count >= max)
-                break;
+        if(kgFetcher.getRecommendationsMap().containsKey(uri)) {
+            for(Recommendation recom : kgFetcher.getRecommendationsMap().get(uri)){
+                int count = 0;
+                //for(Multiset.Entry<String> weightedUri : Multisets.copyHighestCountFirst(recomUris).entrySet()){
+                ResultEntity result = new ResultEntity();
+                //String iri = weightedUri.getElement();
+                result.setLink(recom.getUri());
+                result.setTitle(Util.iriToLabel(uri));
+                result.setPhotoUrls(kgFetcher.fetchPhotoUrls(uri));
+                result.setDescription("موجودیت‌های مرتبط با " + Util.iriToLabel(uri));
+                result.setResultType(ResultEntity.ResultType.Similar);
+                results.add(result);
+                if (++count >= max)
+                    break;
+            }
         }
         return results;
     }

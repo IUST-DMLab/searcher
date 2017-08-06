@@ -9,10 +9,13 @@ import com.hp.hpl.jena.rdf.model.*;
 import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
 import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.Triple;
+import ir.ac.iust.dml.kg.search.logic.recommendation.Recommendation;
+import ir.ac.iust.dml.kg.search.logic.recommendation.RecommendationLoader;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -27,6 +30,12 @@ public class KGFetcher {
     private static Map<String,String> interns = new ConcurrentHashMap<>(7*1000*1000);
     public Multimap<String, Triple> subjTripleMap = HashMultimap.create(2300*1000,1);
     public Multimap<String, Triple> objTripleMap = HashMultimap.create(2300*1000,1);
+
+    public Map<String, Recommendation[]> getRecommendationsMap() {
+        return recommendationsMap;
+    }
+
+    private Map<String, Recommendation[]> recommendationsMap = null;
 
 
     public double getRank(String uri){
@@ -44,7 +53,7 @@ public class KGFetcher {
         return rank;
     }
 
-    public KGFetcher() throws IOException {
+    public KGFetcher() throws IOException, SQLException {
         System.err.println("Loading KGFetcher...");
         long t1 = System.currentTimeMillis();
         final String virtuosoServer = ConfigReader.INSTANCE.getString("virtuoso.address", "localhost:1111");
@@ -53,6 +62,8 @@ public class KGFetcher {
         //graph = new VirtGraph("http://fkg.iust.ac.ir/new", "jdbc:virtuoso://" + virtuosoServer, virtuosoUser, virtuosoPass);
         //model = ModelFactory.createModelForGraph(graph);
         loadFromTTL("ttls");
+        System.out.println("Loading recommendations");
+        recommendationsMap = RecommendationLoader.read();
         System.err.printf("KGFetcher loaded in %,d ms\n", (System.currentTimeMillis() - t1));
     }
 
@@ -331,13 +342,13 @@ public class KGFetcher {
     }
 
     public Set<String> getNeighbors(String uri) {
+        int LIMIT = 100;
         List<ResultEntity> resultEntities = new ArrayList<>();
         List<String> triples = new ArrayList<>();
-        triples.addAll(subjTripleMap.get(uri).stream().map(t -> t.getObject()).collect(Collectors.toSet()));
-        triples.addAll(objTripleMap.get(uri).stream().map(t -> t.getSubject()).collect(Collectors.toSet()));
+        triples.addAll(subjTripleMap.get(uri).stream().limit(LIMIT).map(t -> t.getObject()).collect(Collectors.toSet()));
+        triples.addAll(objTripleMap.get(uri).stream().limit(LIMIT).map(t -> t.getSubject()).collect(Collectors.toSet()));
         Set<String> result = triples.stream().filter(s -> s.contains("/resource/")).filter(s -> !s.equals(uri)).collect(Collectors.toSet());
         System.out.printf("Neighbors for %s \t =  %d\n", uri, result.size() );
         return result;
-
     }
 }
