@@ -95,17 +95,17 @@ public class Searcher {
                     .filter(r -> !properties.contains(r))
                     .collect(Collectors.toList());*/
 
-            List<Resource> disambiguatedResources = matchedResourcesUnfiltered.stream()
+            /*List<Resource> disambiguatedResources = matchedResourcesUnfiltered.stream()
                     .filter(mR -> mR.getSubsetOf() == null) //for entities, remove Subsets
                     .filter(mR -> mR.getAmbiguities() != null && mR.getAmbiguities().size() > 0)
                     .flatMap(mR -> mR.getAmbiguities().stream())
                     .map(r -> {
                         if (Strings.isNullOrEmpty(r.getLabel())) r.setLabel(Util.iriToLabel(r.getIri()));
-                        else r.setLabel(r.getLabel() /*+ " (ابهام‌زدایی شده)"*/);
+                        else r.setLabel(r.getLabel() *//*+ " (ابهام‌زدایی شده)"*//*);
                         return r;
                     })
                     .filter(r -> !blacklist.contains(r.getIri()))
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList());*/
 
             List<Resource> entities = matchedResourcesUnfiltered.stream()
                     .filter(mR -> mR.getSubsetOf() == null) //for entities, remove Subsets
@@ -114,7 +114,7 @@ public class Searcher {
                     .filter(r -> !blacklist.contains(r.getIri()))
                     .collect(Collectors.toList());
 
-            entities.addAll(disambiguatedResources);
+            //entities.addAll(disambiguatedResources);
             List<Resource> finalEntities = entities.stream()
                     .filter(r -> !properties.contains(r))
                     .filter(r -> r.getIri() != null)
