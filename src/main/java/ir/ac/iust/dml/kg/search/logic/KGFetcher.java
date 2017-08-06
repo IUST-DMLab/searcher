@@ -224,7 +224,7 @@ public class KGFetcher {
         final long[] count = {0};
         long t = System.currentTimeMillis();
 
-        Arrays.stream(files).forEach(file ->
+        Arrays.stream(files).parallel().forEach(file ->
         {
             if(file.getName().contains("export.sh"))
                 return; //بیخیال فایل مجید بشیم!
