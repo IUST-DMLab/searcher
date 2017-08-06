@@ -174,9 +174,10 @@ public class Searcher {
     }
 
     private SearchDirection selectDirection(String subjectIri, String propertyIri, String queryText) {
-        if(propertyIri.contains("ontology/starring") || propertyIri.contains("ontology/Province"))
+        return SearchDirection.BOTH;
+        /*if(propertyIri.contains("ontology/starring") || propertyIri.contains("ontology/Province"))
             return SearchDirection.BOTH;
-        return SearchDirection.SUBJ_PROP;
+        return SearchDirection.SUBJ_PROP;*/
     }
 
     /**
