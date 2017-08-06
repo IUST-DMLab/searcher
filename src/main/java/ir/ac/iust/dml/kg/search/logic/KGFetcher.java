@@ -335,7 +335,7 @@ public class KGFetcher {
         List<String> triples = new ArrayList<>();
         triples.addAll(subjTripleMap.get(uri).stream().map(t -> t.getObject()).collect(Collectors.toSet()));
         triples.addAll(objTripleMap.get(uri).stream().map(t -> t.getSubject()).collect(Collectors.toSet()));
-        Set<String> result = triples.stream().filter(s -> s.contains("/resource/")).filter(s -> s.equals(uri)).collect(Collectors.toSet());
+        Set<String> result = triples.stream().filter(s -> s.contains("/resource/")).filter(s -> !s.equals(uri)).collect(Collectors.toSet());
         System.out.printf("Neighbors for %s \t =  %d\n", uri, result.size() );
         return result;
 
