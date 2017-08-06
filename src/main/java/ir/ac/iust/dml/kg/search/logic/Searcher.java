@@ -1,6 +1,8 @@
 package ir.ac.iust.dml.kg.search.logic;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Multisets;
 import ir.ac.iust.dml.kg.resource.extractor.*;
 import ir.ac.iust.dml.kg.resource.extractor.tree.TreeResourceExtractor;
 import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
@@ -14,6 +16,7 @@ import java.util.stream.Collectors;
 
 public class Searcher {
     private static final String BLACKLIST_FILE_NAME = "black_list.txt";
+    private static final int MAX_RECOMMENDATIONS = 5;
     private final IResourceExtractor extractor;
     private final KGFetcher kgFetcher;
     private static final PersianCharNormalizer normalizer = customizeNormalizer();
@@ -162,11 +165,11 @@ public class Searcher {
                         continue;
                     uriOfEntities.add(resultEntity.getLink());
                     result.getEntities().add(resultEntity);
+                    result.getEntities().addAll(getRecommendations(resultEntity.getLink(),MAX_RECOMMENDATIONS));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-
 
 
 
@@ -184,6 +187,29 @@ public class Searcher {
         }
         return result;
     }
+
+
+    public Collection<ResultEntity> getRecommendations(String uri,int max) {
+        Multiset<String> recomUris = kgFetcher.getRecommendationsUri(uri);
+        List<ResultEntity> results = new ArrayList<>();
+        int count = 0;
+        for(Multiset.Entry<String> weightedUri : Multisets.copyHighestCountFirst(recomUris).entrySet()){
+            ResultEntity result = new ResultEntity();
+            String iri = weightedUri.getElement();
+            result.setLink(iri);
+            result.setTitle(Util.iriToLabel(iri));
+            result.setPhotoUrls(kgFetcher.fetchPhotoUrls(iri));
+            result.setDescription("موجودیت‌های مرتبط با " + Util.iriToLabel(uri));
+            result.setResultType(ResultEntity.ResultType.Similar);
+            results.add(result);
+            if(++count >= max)
+                break;
+        }
+        return results;
+    }
+
+
+
 
     private SearchDirection selectDirection(String subjectIri, String propertyIri, String queryText) {
         //return SearchDirection.BOTH;

@@ -1,13 +1,18 @@
 package ir.ac.iust.dml.kg.search.logic;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.*;
 import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
+import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.Triple;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -287,8 +292,18 @@ public class KGFetcher {
     }
 
     public static void main(String[] args) throws IOException {
-        KGFetcher fetcher = new KGFetcher();;
-        fetcher.loadFromTTL(args[0]);
+        //KGFetcher fetcher = new KGFetcher();;
+        //fetcher.loadFromTTL(args[0]);
+        KGFetcher.loadRecommendations("C:\\Users\\ali\\Downloads\\recommendations2_sample.json");
+    }
+
+    public static void loadRecommendations(String path) throws IOException {
+        List<String> texts = Files.readAllLines(Paths.get(path));
+        for(String t : texts) {
+            JsonElement jelement = new JsonParser().parse(t);
+            JsonObject jobject = jelement.getAsJsonObject();
+            System.out.println();
+        }
     }
 
     public List<String> fetchPhotoUrls(String link) {
@@ -301,5 +316,25 @@ public class KGFetcher {
             e.printStackTrace();
         }
         return photos;
+    }
+
+    public Multiset<String> getRecommendationsUri(String uri) {
+        Set<String> neighbors = getNeighbors(uri);
+        Multiset<String> relevants = HashMultiset.create();
+        relevants.addAll(neighbors);
+        for(String nb : neighbors){
+            neighbors.addAll(getNeighbors(nb));
+        }
+
+        return relevants;
+    }
+
+    public Set<String> getNeighbors(String uri) {
+        List<ResultEntity> resultEntities = new ArrayList<>();
+        List<String> triples = new ArrayList<>();
+        triples.addAll(subjTripleMap.get(uri).stream().map(t -> t.getObject()).collect(Collectors.toSet()));
+        triples.addAll(objTripleMap.get(uri).stream().map(t -> t.getSubject()).collect(Collectors.toSet()));
+        return triples.stream().filter(s -> s.contains("/resource/")).filter(s -> s.equals(uri)).collect(Collectors.toSet());
+
     }
 }

@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class ResultEntity {
 
-    public enum ResultType {Other,Property,Entity,Class,RelationalResult}
+    public enum ResultType {Other,Property,Entity,Class, RelationalResult, Similar}
     private String link;
     private String title;
     private String subtitle;
