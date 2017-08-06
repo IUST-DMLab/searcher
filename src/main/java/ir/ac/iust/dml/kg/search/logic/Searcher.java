@@ -59,6 +59,15 @@ public class Searcher {
                         if (mR.getAmbiguities() != null)
                             list.addAll(mR.getAmbiguities());
 
+                        //TODO: remove -- Mast-mali
+                        list = list.stream().map(r ->
+                                {
+                                    if(r.getIri() != null && r.getIri().contains("/ontology/")
+                                            && (r.getType() == null || !r.getType().toString().contains("Property")) )
+                                        r.setType(ResourceType.Property);
+                                        return r;
+                                }).collect(Collectors.toList());
+
                         //if there is a detected property, skip all other entities
                         if(list.stream().anyMatch(r -> r.getType() != null && r.getType().toString().contains("Property")))
                             return list.stream().filter(r -> r.getType() != null && r.getType().toString().contains("Property"));
