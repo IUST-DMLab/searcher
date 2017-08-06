@@ -70,10 +70,8 @@ public class Searcher {
                     .collect(Collectors.toList());
 
             List<Resource> properties = allMatchedResources.stream()
-                    /*.filter(r -> r.getType() != null)
-                    .filter(r -> r.getType().toString().contains("Property"))*/
-                    .filter(r -> (r.getType() != null && r.getType().toString().contains("Property"))
-                            || (r.getIri()!= null && r.getIri().contains("/ontology/")))
+                    .filter(r -> r.getType() != null)
+                    .filter(r -> r.getType().toString().contains("Property"))
                     .filter(r -> !blacklist.contains(r.getIri()))
                     .collect(Collectors.toList());
 
