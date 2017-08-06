@@ -221,34 +221,49 @@ public class KGFetcher {
         File folder = new File(folderPath);
         File[] files=folder.listFiles();
         Arrays.sort(files);
-        long count = 0;
+        final long[] count = {0};
         long t = System.currentTimeMillis();
 
-        for(File file : files){
-            Model model=ModelFactory.createDefaultModel();
-            model.read(new FileInputStream(file.getAbsolutePath()),null,"TTL");
-            StmtIterator iter = model.listStatements();
-            while ( iter.hasNext() ) {
-                Statement stmt = iter.next();
-                String s = intern(stmt.getSubject().toString());
-                String p = intern(stmt.getPredicate().toString());
-                String o = intern(stmt.getObject().toString());
-                Triple triple = new Triple(s,p,o);
-                subjTripleMap.put(s,triple);
-                if(o.contains("http://"))
-                    objTripleMap.put(o,triple);
-                //System.out.printf("%,d\t%s\t%s\t%s\t%s\n", ++count,file.toString(),s,p,o);
-                count++;
+        Arrays.stream(files).forEach(file ->
+        {
+            if(file.getName().contains("export.sh"))
+                return; //بیخیال فایل مجید بشیم!
+
+            Model model = ModelFactory.createDefaultModel();
+            try {
+                model.read(new FileInputStream(file.getAbsolutePath()), null, "TTL");
+            } catch (FileNotFoundException e) {
+                System.err.println("ERROR while loading " + file.getAbsolutePath() + "\t ... Exiting!");
+                e.printStackTrace();
+                System.exit(0);
             }
-            if ( iter != null ) iter.close();
+            StmtIterator iter = model.listStatements();
+            while (iter.hasNext()) {
+                Statement stmt = iter.next();
+
+                putTripleInMapsSynchronized(stmt);
+                //System.out.printf("%,d\t%s\t%s\t%s\t%s\n", ++count,file.toString(),s,p,o);
+                count[0]++;
+            }
+            if (iter != null) iter.close();
             System.out.printf("Finished loading %s in %,d ms from beginning\n", file.getName(), System.currentTimeMillis() - t);
-        }
-        System.out.printf("Finished loading %,d triples in %,d ms \n", count, System.currentTimeMillis() - t);
+        });
+        System.out.printf("Finished loading %,d triples in %,d ms \n", count[0], System.currentTimeMillis() - t);
         /*serialize(subjTripleMap,"subjTripleMap.data");
         System.out.printf("Finished subjTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
         serialize(objTripleMap,"objTripleMap.data");
         System.out.printf("Finished objTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);*/
         interns.clear();
+    }
+
+    private synchronized void putTripleInMapsSynchronized(Statement stmt) {
+        String s = intern(stmt.getSubject().toString());
+        String p = intern(stmt.getPredicate().toString());
+        String o = intern(stmt.getObject().toString());
+        Triple triple = new Triple(s,p,o);
+        subjTripleMap.put(s,triple);
+        if(o.contains("http://"))
+            objTripleMap.put(o,triple);
     }
 
     private void serialize(Object obj, String filePath) throws IOException {

@@ -59,10 +59,10 @@ public class Searcher {
                         if (mR.getAmbiguities() != null)
                             list.addAll(mR.getAmbiguities());
 
-                        //TODO: remove -- Mast-mali
+                        //TODO: to be refurbished
                         list = list.stream().map(r ->
                                 {
-                                    if(r.getIri() != null && r.getIri().contains("/ontology/")
+                                    if(r.getIri() != null && (r.getIri().contains("/ontology/") || r.getIri().contains("/property/"))
                                             && (r.getType() == null || !r.getType().toString().contains("Property")) )
                                         r.setType(ResourceType.Property);
                                         return r;
@@ -74,6 +74,7 @@ public class Searcher {
                         return list.stream();
                     })
                     .filter(r -> r.getIri() != null)
+                    .filter(r -> !r.getIri().contains("ابهام"))
                     .filter(Util.distinctByKey(Resource::getIri)) //distinct by Iri
                     .filter(r -> !blacklist.contains(r.getIri()))
                     .collect(Collectors.toList());
@@ -95,7 +96,7 @@ public class Searcher {
                     .flatMap(mR -> mR.getAmbiguities().stream())
                     .map(r -> {
                         if (Strings.isNullOrEmpty(r.getLabel())) r.setLabel(Util.iriToLabel(r.getIri()));
-                        else r.setLabel(r.getLabel() + " (ابهام‌زدایی شده)");
+                        else r.setLabel(r.getLabel() /*+ " (ابهام‌زدایی شده)"*/);
                         return r;
                     })
                     .filter(r -> !blacklist.contains(r.getIri()))
@@ -174,6 +175,8 @@ public class Searcher {
                     r.setTitle(Util.iriToLabel(r.getLink()));
                 if(r.getTitle().contains("/"))
                     r.setTitle(Util.iriToLabel(r.getTitle()));
+                /*if(r.getTitle() != null && r.getTitle().contains("(ابهام‌زدایی شده)"))*/
+
             }
 
         } catch (Exception e) {
