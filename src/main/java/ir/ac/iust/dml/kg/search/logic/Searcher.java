@@ -47,6 +47,9 @@ public class Searcher {
     }
 
     public SearchResult search(String keyword) {
+        if(keyword == null || keyword.trim().isEmpty())
+            return new SearchResult();
+
         String queryText = normalizer.normalize(keyword);
         final SearchResult result = new SearchResult();
         System.out.println(new Date() + " PROCESSING QUERY: " + keyword);
@@ -190,6 +193,7 @@ public class Searcher {
 
 
     public Collection<ResultEntity> getRecommendations(String uri,int max) {
+        System.out.println("Searcher: Computing recommendations for: " + uri);
         Multiset<String> recomUris = kgFetcher.getRecommendationsUri(uri);
         List<ResultEntity> results = new ArrayList<>();
         int count = 0;
