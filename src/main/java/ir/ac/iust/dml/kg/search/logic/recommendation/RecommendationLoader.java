@@ -12,7 +12,7 @@ public class RecommendationLoader {
         final Connection con = DriverManager.getConnection(
                 "jdbc:mysql://dmls.iust.ac.ir:3306/recommendations?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false", "paydar", "paydar");
         try {
-            for(int i=2; i<=5; i++) {
+            for(int i=2; i<=10; i++) {
                 try {
                     Statement stmt = con.createStatement();
                     ResultSet rs = stmt.executeQuery("select uri, results  from recommendations" + i);
