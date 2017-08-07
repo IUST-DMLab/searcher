@@ -13,14 +13,18 @@ public class RecommendationLoader {
                 "jdbc:mysql://dmls.iust.ac.ir:3306/recommendations?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false", "paydar", "paydar");
         try {
             for(int i=2; i<=5; i++) {
-                Statement stmt = con.createStatement();
-                ResultSet rs = stmt.executeQuery("select uri, results  from recommendations" + i);
-                Gson g = new Gson();
-                while (rs.next()) {
-                    final String uri = rs.getString(1);
-                    final String results = rs.getString(2);
-                    final Recommendation[] recs = g.fromJson(results, Recommendation[].class);
-                    recommendations.put(uri, recs);
+                try {
+                    Statement stmt = con.createStatement();
+                    ResultSet rs = stmt.executeQuery("select uri, results  from recommendations" + i);
+                    Gson g = new Gson();
+                    while (rs.next()) {
+                        final String uri = rs.getString(1);
+                        final String results = rs.getString(2);
+                        final Recommendation[] recs = g.fromJson(results, Recommendation[].class);
+                        recommendations.put(uri, recs);
+                    }
+                }catch(Exception e){
+                    e.printStackTrace();
                 }
             }
         } finally {
