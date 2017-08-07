@@ -263,6 +263,14 @@ public class Searcher {
                 && properties.stream().noneMatch(r -> r.getIri().contains("ontology/revenue")))
             properties.add(new Resource("http://fkg.iust.ac.ir/ontology/revenue","درآمد"));
 
+        if((queryText.contains("نویسنده") ||  queryText.contains("مولف"))
+                && properties.stream().noneMatch(r -> r.getIri().contains("ontology/author")))
+            properties.add(new Resource("http://fkg.iust.ac.ir/ontology/author","نویسنده"));
+
+        if((queryText.contains("پیش شماره") ||  queryText.contains("پیش‌شماره"))
+                && properties.stream().noneMatch(r -> r.getIri().contains("ontology/areaCode")))
+            properties.add(new Resource("http://fkg.iust.ac.ir/ontology/areaCode","کد تلفن"));
+
         if((queryText.contains("ترکیبات اصلی"))
                 && properties.stream().noneMatch(r -> r.getIri().contains("ontology/ingredient")))
             properties.add(new Resource("http://fkg.iust.ac.ir/ontology/ingredient","ترکیبات اصلی"));
