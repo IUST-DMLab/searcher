@@ -24,6 +24,7 @@ public class RecommendationLoader {
                         recommendations.put(uri, recs);
                     }
                 }catch(Exception e){
+                    System.err.println("Error while loading recommendations" + i);
                     e.printStackTrace();
                 }
             }
