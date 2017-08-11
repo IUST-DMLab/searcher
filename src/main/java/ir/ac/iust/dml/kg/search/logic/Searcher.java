@@ -93,59 +93,26 @@ public class Searcher {
             List<Resource> properties = allMatchedResources.stream()
                     .filter(r -> r.getType() != null)
                     .filter(r -> r.getType().toString().contains("Property"))
-                    .filter(r -> !blacklist.contains(r.getIri()))
                     .collect(Collectors.toList());
 
             System.out.println("\n\nproperties:");
             properties.stream().forEach(r -> System.err.println("\t" + r.getIri()));
 
-
-            /*List<Resource> allEntities = allMatchedResources.stream()
-                    .filter(r -> r.getType() != null)
-                    .filter(r -> !properties.contains(r))
-                    .collect(Collectors.toList());*/
-
-            /*List<Resource> disambiguatedResources = matchedResourcesUnfiltered.stream()
-                    .filter(mR -> mR.getSubsetOf() == null) //for entities, remove Subsets
-                    .filter(mR -> mR.getAmbiguities() != null && mR.getAmbiguities().size() > 0)
-                    .flatMap(mR -> mR.getAmbiguities().stream())
-                    .map(r -> {
-                        if (Strings.isNullOrEmpty(r.getLabel())) r.setLabel(Util.iriToLabel(r.getIri()));
-                        else r.setLabel(r.getLabel() *//*+ " (ابهام‌زدایی شده)"*//*);
-                        return r;
-                    })
-                    .filter(r -> !blacklist.contains(r.getIri()))
-                    .collect(Collectors.toList());
-
-            System.out.println("\n\ndisambiguatedResources:");
-            disambiguatedResources.stream().forEach(r -> System.err.println("\t" + r.getIri()));*/
-
-            List<Resource> entities = matchedResourcesUnfiltered.stream()
-                    .filter(mR -> mR.getSubsetOf() == null) //for entities, remove Subsets
-                    .filter(mR -> mR.getResource() != null)
-                    .map(MatchedResource::getResource)
-                    .filter(r -> !blacklist.contains(r.getIri()))
-                    .collect(Collectors.toList());
-
-            System.out.println("\n\nentities:");
-            entities.stream().forEach(r -> System.err.println("\t" + r.getIri()));
-
-            //entities.addAll(disambiguatedResources);
-            List<Resource> finalEntities = entities.stream()
+            List<Resource> entities = allMatchedResources.stream()
                     .filter(r -> !properties.contains(r))
                     .filter(r -> r.getIri() != null)
                     .filter(Util.distinctByKey(Resource::getIri)) //distinct by Iri
                     .sorted((o1, o2) -> ((Double) kgFetcher.getRank(o2.getIri())).compareTo(kgFetcher.getRank(o1.getIri())))
                     .collect(Collectors.toList());
 
-            System.out.println("\n\nfinalEntities:");
-            finalEntities.stream().forEach(r -> System.err.println("\t" + r.getIri()));
+            System.out.println("\n\nentities:");
+            entities.stream().forEach(r -> System.err.println("\t" + r.getIri()));
 
 
             // وای وای چه کار زشتی!
             doManualCorrections(properties,queryText);
 
-            for (Resource subjectR : finalEntities) {
+            for (Resource subjectR : entities) {
                 for (Resource propertyR : properties) {
                     try {
                         System.out.println("Trying combinatios for " + subjectR.getIri() + "\t & \t" + propertyR.getIri());
@@ -179,7 +146,7 @@ public class Searcher {
 
             //Output individual entities
             Set<String> uriOfEntities = new HashSet<>();
-            for (Resource entity : finalEntities) {
+            for (Resource entity : entities) {
                 try {
                     ResultEntity resultEntity = matchedResourceToResultEntity(entity);
                     if (uriOfEntities.contains(purify(resultEntity.getLink())))
