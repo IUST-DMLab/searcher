@@ -9,6 +9,7 @@ import ir.ac.iust.dml.kg.search.logic.recommendation.Recommendation;
 import knowledgegraph.normalizer.PersianCharNormalizer;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,8 +20,6 @@ public class Searcher {
     private final IResourceExtractor extractor;
     private final KGFetcher kgFetcher;
     private static final PersianCharNormalizer normalizer = customizeNormalizer();
-
-
 
     private final Set<String> blacklist = new HashSet<String>();
 
@@ -106,20 +105,20 @@ public class Searcher {
                     .filter(r -> !properties.contains(r))
                     .collect(Collectors.toList());*/
 
-            List<Resource> disambiguatedResources = matchedResourcesUnfiltered.stream()
+            /*List<Resource> disambiguatedResources = matchedResourcesUnfiltered.stream()
                     .filter(mR -> mR.getSubsetOf() == null) //for entities, remove Subsets
                     .filter(mR -> mR.getAmbiguities() != null && mR.getAmbiguities().size() > 0)
                     .flatMap(mR -> mR.getAmbiguities().stream())
                     .map(r -> {
                         if (Strings.isNullOrEmpty(r.getLabel())) r.setLabel(Util.iriToLabel(r.getIri()));
-                        else r.setLabel(r.getLabel() /*+ " (ابهام‌زدایی شده)"*/);
+                        else r.setLabel(r.getLabel() *//*+ " (ابهام‌زدایی شده)"*//*);
                         return r;
                     })
                     .filter(r -> !blacklist.contains(r.getIri()))
                     .collect(Collectors.toList());
 
             System.out.println("\n\ndisambiguatedResources:");
-            disambiguatedResources.stream().forEach(r -> System.err.println("\t" + r.getIri()));
+            disambiguatedResources.stream().forEach(r -> System.err.println("\t" + r.getIri()));*/
 
             List<Resource> entities = matchedResourcesUnfiltered.stream()
                     .filter(mR -> mR.getSubsetOf() == null) //for entities, remove Subsets
@@ -131,7 +130,7 @@ public class Searcher {
             System.out.println("\n\nentities:");
             entities.stream().forEach(r -> System.err.println("\t" + r.getIri()));
 
-            entities.addAll(disambiguatedResources);
+            //entities.addAll(disambiguatedResources);
             List<Resource> finalEntities = entities.stream()
                     .filter(r -> !properties.contains(r))
                     .filter(r -> r.getIri() != null)
@@ -217,6 +216,7 @@ public class Searcher {
         System.out.println("Searcher: Computing recommendations for: " + uri);
         //Multiset<String> recomUris = kgFetcher.getRecommendationsUri(uri);
         List<ResultEntity> results = new ArrayList<>();
+
         if(kgFetcher.getRecommendationsMap().containsKey(uri)) {
             for(Recommendation recom : kgFetcher.getRecommendationsMap().get(uri)){
                 int count = 0;

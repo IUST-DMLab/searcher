@@ -2,6 +2,8 @@ package ir.ac.iust.dml.kg.search.logic.recommendation;
 
 import com.google.gson.Gson;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,8 +11,13 @@ import java.util.Map;
 public class RecommendationLoader {
     public static Map<String, Recommendation[]> read() throws SQLException {
         final  Map<String, Recommendation[]> recommendations = new HashMap<>();
+
+        //avoid loading  recommendations on local runs
+        if(Files.exists(Paths.get("noRecom")))
+            return recommendations;
+
         final Connection con = DriverManager.getConnection(
-                "jdbc:mysql://dmls.iust.ac.ir:3306/recommendations?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false", "paydar", "paydar");
+                "jdbc:mysql://localhost:3306/recommendations?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false", "paydar", "paydar");
         try {
             for(int i=2; i<=10; i++) {
                 try {
