@@ -23,8 +23,6 @@ public class Searcher {
 
     private final Set<String> blacklist = new HashSet<String>();
 
-
-
     private static String semaphore = "Semaphore";
     private static Searcher instance;
 
@@ -208,8 +206,9 @@ public class Searcher {
 
     private SearchDirection selectDirection(String subjectIri, String propertyIri, String queryText) {
         //return SearchDirection.BOTH;
-        if(propertyIri.contains("ontology/starring") || propertyIri.contains("ontology/Province"))
+        if(propertyIri.contains("ontology/starring") || propertyIri.toLowerCase().contains("ontology/province"))
             return SearchDirection.BOTH;
+
         return SearchDirection.SUBJ_PROP;
     }
 
@@ -221,6 +220,7 @@ public class Searcher {
      */
     private void doManualCorrections(List<Resource> properties, String queryText) {
         if((queryText.contains("فیلم") ||  queryText.contains("سریال"))
+                && !(queryText.contains("درآمد") || queryText.contains("درامد") ||  queryText.contains("بودجه"))
                 && properties.stream().noneMatch(r -> r.getIri().contains("ontology/starring"))) {
             properties.add(new Resource("http://fkg.iust.ac.ir/ontology/starring", "فیلم‌"));
             properties.add(new Resource("http://fkg.iust.ac.ir/ontology/director","کارگردان"));
@@ -250,10 +250,33 @@ public class Searcher {
                 && properties.stream().noneMatch(r -> r.getIri().contains("ontology/team")))
             properties.add(new Resource("http://fkg.iust.ac.ir/ontology/team","تیم"));
 
-
         if((queryText.contains("ساخت") && queryText.contains("دوره"))
                 && properties.stream().noneMatch(r -> r.getIri().contains("property/دیرینگی")))
             properties.add(new Resource("http://fkg.iust.ac.ir/property/دیرینگی","دوره ساخت (دیرینگی)"));
+
+        if((queryText.contains("پلاک"))
+                && properties.stream().noneMatch(r -> r.getIri().contains("ontology/vehicleCode")))
+            properties.add(new Resource("http://fkg.iust.ac.ir/ontology/vehicleCode","پلاک اتومبیل"));
+
+        if((queryText.contains("بزرگ") && queryText.contains("شهر"))
+                && properties.stream().noneMatch(r -> r.getIri().contains("ontology/largestCity")))
+            properties.add(new Resource("http://fkg.iust.ac.ir/ontology/largestCity","بزرگترین شهر"));
+
+        if((queryText.contains("مواد لازم") && queryText.contains("ترکیبات"))
+                && properties.stream().noneMatch(r -> r.getIri().contains("ontology/ingredient")))
+            properties.add(new Resource("http://fkg.iust.ac.ir/ontology/ingredient","ترکیبات اصلی"));
+
+
+        if((queryText.contains("کتابهای") || queryText.contains("کتب") || queryText.contains("کتاب های"))
+                && properties.stream().noneMatch(r -> r.getIri().contains("ontology/notableWork")))
+            properties.add(new Resource("http://fkg.iust.ac.ir/ontology/notableWork","تالیفات"));
+
+
+        if((queryText.contains("شهر های") || queryText.contains("شهرهای"))
+                && properties.stream().noneMatch(r -> r.getIri().contains("ontology/province")))
+            properties.add(new Resource("http://fkg.iust.ac.ir/ontology/province","شهرهای استان"));
+
+
     }
 
     private ResultEntity matchedResourceToResultEntity(Resource resource) {
