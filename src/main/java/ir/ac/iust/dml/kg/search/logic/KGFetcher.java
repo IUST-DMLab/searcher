@@ -1,16 +1,21 @@
 package ir.ac.iust.dml.kg.search.logic;
 
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multiset;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.hp.hpl.jena.query.*;
-import com.hp.hpl.jena.rdf.model.*;
 import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
 import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.Triple;
 import ir.ac.iust.dml.kg.search.logic.recommendation.Recommendation;
 import ir.ac.iust.dml.kg.search.logic.recommendation.RecommendationLoader;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -25,8 +30,6 @@ import java.util.stream.Collectors;
  */
 public class KGFetcher {
     private static final String KB_PREFIX = "http://fkg.iust.ac.ir/resource/";
-    //private VirtGraph graph = null;
-    private Model model = null;
     private static Map<String,String> interns = new ConcurrentHashMap<>(7*1000*1000);
     public Multimap<String, Triple> subjTripleMap = HashMultimap.create(2300*1000,1);
     public Multimap<String, Triple> objTripleMap = HashMultimap.create(2300*1000,1);
@@ -67,68 +70,28 @@ public class KGFetcher {
         System.err.printf("KGFetcher loaded in %,d ms\n", (System.currentTimeMillis() - t1));
     }
 
-    public String fetchLabel(String uri, boolean filterNonPersian) {
-        String queryString =
-                "SELECT ?o \n" +
-                        "WHERE {\n" +
-                        "<" +
-                        uri +
-                        "> <http://www.w3.org/2000/01/rdf-schema#label> ?o. \n";
-        if (filterNonPersian)
-            queryString += "FILTER (lang(?o) = \"fa\")";
+//    public String fetchLabel(String uri, boolean filterNonPersian) {
+//        String queryString =
+//                "SELECT ?o \n" +
+//                        "WHERE {\n" +
+//                        "<" +
+//                        uri +
+//                        "> <http://www.w3.org/2000/01/rdf-schema#label> ?o. \n";
+//        if (filterNonPersian)
+//            queryString += "FILTER (lang(?o) = \"fa\")";
+//
+//        queryString += "}";
+//    }
 
-        queryString += "}";
-
-        final Query query = QueryFactory.create(queryString);
-        final QueryExecution qexec = QueryExecutionFactory.create(query, model);
-        final ResultSet results = qexec.execSelect();
-
-        String resultText = "";
-        while (results.hasNext()) {
-            final QuerySolution binding = results.nextSolution();
-            final RDFNode o = binding.get("o");
-            resultText += o.toString();
-            if (results.hasNext())
-                resultText += "، ";
-        }
-        resultText = resultText.replaceAll("@fa", "").replaceAll("@en", "");
-        if (resultText.equals(""))
-            resultText = Util.iriToLabel(uri);
-
-        if (resultText.contains(KB_PREFIX))
-            resultText = resultText.replace(KB_PREFIX, "").replace('_', ' ');
-
-        //close connection
-        try { qexec.close(); } catch (Throwable th) { th.printStackTrace(); }
-
-        return resultText;
-    }
-
-    public String fetchWikiPage(String uri) {
-        String queryString =
-                "SELECT ?o \n" +
-                        "WHERE {\n" +
-                        "<" +
-                        uri +
-                        "> <http://fkg.iust.ac.ir/ontology/wikipageredirects> ?o. \n" +
-                        "}";
-
-        final Query query = QueryFactory.create(queryString);
-        final QueryExecution qexec = QueryExecutionFactory.create(query, model);
-        final ResultSet results = qexec.execSelect();
-
-        String resultText = null;
-        if (results.hasNext()) {
-            final QuerySolution binding = results.nextSolution();
-            final RDFNode o = binding.get("o");
-            resultText = o.toString();
-        }
-
-        //close connection
-        try { qexec.close(); } catch (Throwable th) { th.printStackTrace(); }
-
-        return resultText;
-    }
+//    public String fetchWikiPage(String uri) {
+//        String queryString =
+//                "SELECT ?o \n" +
+//                        "WHERE {\n" +
+//                        "<" +
+//                        uri +
+//                        "> <http://fkg.iust.ac.ir/ontology/wikipageredirects> ?o. \n" +
+//                        "}";
+//    }
 
     /**s
      * Returns the (uri,label) pairs for each object statisfying subj-property-object-
@@ -207,31 +170,15 @@ public class KGFetcher {
         return matchedObjectLabels;
     }
 
-    public long fetchsubjPropertyObjRecords(long page, long pageSize) {
-        String queryString =
-                "SELECT ?s ?p ?o\n" +
-                        "WHERE {\n" +
-                        "?s ?p ?o .\n" +
-                        "filter(regex(str(?p), \"/ontology/\") || regex(str(?p), \"/property/\") )\n" +
-                        "}" +
-                        ((page >= 0 && pageSize >= 0) ? " OFFSET " + (page * pageSize) + " LIMIT " + pageSize : "");
-        System.out.println(queryString);
-        System.exit(0);
-        final Query query = QueryFactory.create(queryString);
-        final QueryExecution exec = QueryExecutionFactory.create(query, model);
-        final ResultSet results = exec.execSelect();
-
-        long recordNum = 0;
-        while (results.hasNext()) {
-            recordNum++;
-            final QuerySolution binding = results.nextSolution();
-            final Resource s = (Resource) binding.get("s");
-            final Resource p = (Resource) binding.get("p");
-            final RDFNode o = binding.get("o");
-            System.out.printf("[%,d]\t%s\t%s\t%s\n", recordNum + page * pageSize, s.toString(),p.toString(),o.toString());
-        }
-        return recordNum;
-    }
+//    public long fetchsubjPropertyObjRecords(long page, long pageSize) {
+//        String queryString =
+//                "SELECT ?s ?p ?o\n" +
+//                        "WHERE {\n" +
+//                        "?s ?p ?o .\n" +
+//                        "filter(regex(str(?p), \"/ontology/\") || regex(str(?p), \"/property/\") )\n" +
+//                        "}" +
+//                        ((page >= 0 && pageSize >= 0) ? " OFFSET " + (page * pageSize) + " LIMIT " + pageSize : "");
+//    }
 
     public void loadFromTTL(String folderPath) throws IOException {
         File folder = new File(folderPath);

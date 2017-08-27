@@ -97,7 +97,7 @@
         <dependency>
             <groupId>ir.ac.iust.dml.kg.vituoso</groupId>
             <artifactId>connector</artifactId>
-            <version>0.2.3</version>
+          <version>0.2.5</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -128,9 +128,9 @@
             <version>4.1</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-collections4</artifactId>
-            <version>4.1</version>
+          <groupId>org.apache.jena</groupId>
+          <artifactId>jena-core</artifactId>
+          <version>3.4.0</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.11 -->

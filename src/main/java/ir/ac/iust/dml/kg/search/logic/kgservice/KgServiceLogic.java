@@ -25,10 +25,12 @@ public class KgServiceLogic {
 
     private String getLabel(String url) {
         if (url == null) return null;
+      final String defaultLabel = url.substring(url.lastIndexOf('/') + 1)
+          .replace('_', ' ');
       final List<VirtuosoTriple> parent = connector.getTriples(url, URIs.INSTANCE.getLabel());
-        if (parent == null || parent.isEmpty() || parent.get(0).getObject() == null) return null;
+      if (parent == null || parent.isEmpty() || parent.get(0).getObject() == null) return defaultLabel;
         final Object label = parent.get(0).getObject().getValue();
-        if (label == null) return null;
+      if (label == null) return defaultLabel;
         return label.toString();
     }
 
