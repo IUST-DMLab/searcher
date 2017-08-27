@@ -195,7 +195,7 @@ public class KGFetcher {
             Model model = ModelFactory.createDefaultModel();
             try {
                 model.read(new FileInputStream(file.getAbsolutePath()), null, "TTL");
-            } catch (FileNotFoundException e) {
+            } catch (Throwable e) {
                 System.err.println("ERROR while loading " + file.getAbsolutePath() + "\t ... Exiting!");
                 e.printStackTrace();
                 System.exit(0);
