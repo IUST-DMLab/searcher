@@ -198,7 +198,7 @@ public class KGFetcher {
             } catch (Throwable e) {
                 System.err.println("ERROR while loading " + file.getAbsolutePath() + "\t ... Exiting!");
                 e.printStackTrace();
-                System.exit(0);
+//                System.exit(0);
             }
             StmtIterator iter = model.listStatements();
             while (iter.hasNext()) {
