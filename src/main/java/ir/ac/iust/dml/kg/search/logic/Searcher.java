@@ -206,7 +206,7 @@ public class Searcher {
 
     private SearchDirection selectDirection(String subjectIri, String propertyIri, String queryText) {
         //return SearchDirection.BOTH;
-        if(propertyIri.contains("ontology/starring") || propertyIri.toLowerCase().contains("ontology/province"))
+        if(propertyIri.contains("ontology/starring") || propertyIri.contains("ontology/director")  || propertyIri.toLowerCase().contains("ontology/province"))
             return SearchDirection.BOTH;
 
         return SearchDirection.SUBJ_PROP;
@@ -275,7 +275,6 @@ public class Searcher {
         if((queryText.contains("شهر های") || queryText.contains("شهرهای"))
                 && properties.stream().noneMatch(r -> r.getIri().contains("ontology/province")))
             properties.add(new Resource("http://fkg.iust.ac.ir/ontology/province","شهرهای استان"));
-
 
     }
 

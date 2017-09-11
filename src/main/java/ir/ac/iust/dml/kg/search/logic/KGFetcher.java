@@ -159,6 +159,9 @@ public class KGFetcher {
                 objectLabel = objectUri;
             }
 
+            if(objectUri.contains("("))
+                objectLabel = Util.iriToLabel(objectUri);
+
             System.out.println("++FOUND URI: " + objectUri);
             System.out.println("++FOUND LABEL: " + objectLabel);
 
