@@ -238,7 +238,7 @@ public class Searcher {
                 && properties.stream().noneMatch(r -> r.getIri().contains("ontology/areaCode")))
             properties.add(new Resource("http://fkg.iust.ac.ir/ontology/areaCode","کد تلفن"));
 
-        if((queryText.contains("ترکیبات اصلی"))
+        if((queryText.contains("ترکیبات"))
                 && properties.stream().noneMatch(r -> r.getIri().contains("ontology/ingredient")))
             properties.add(new Resource("http://fkg.iust.ac.ir/ontology/ingredient","ترکیبات اصلی"));
 
