@@ -127,7 +127,7 @@ public class Searcher {
                             resultEntity.setPhotoUrls(kgFetcher.fetchPhotoUrls(resultEntity.getLink()));
                             resultEntity.setResultType(ResultEntity.ResultType.RelationalResult);
                             if (!(Strings.isNullOrEmpty(subjectR.getLabel()) || Strings.isNullOrEmpty(propertyR.getLabel()))) {
-                                resultEntity.setDescription(resultEntity.getDescription() + ": [" + subjectR.getLabel() + "] / [" + propertyR.getLabel() + "]");
+                                resultEntity.setDescription(resultEntity.getDescription() + ": [" + /*subjectR.getLabel()*/ Util.iriToLabel(subjectR.getIri()) + "] / [" + propertyR.getLabel() + "]");
                             }
                             result.getEntities().add(resultEntity);
                         }
