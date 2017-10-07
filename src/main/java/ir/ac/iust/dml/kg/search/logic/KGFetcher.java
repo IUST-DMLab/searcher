@@ -245,7 +245,7 @@ public class KGFetcher {
      * @param str
      * @return
      */
-    private static String intern(String str){
+    public static String intern(String str) {
         if(!interns.containsKey(str)) {
             interns.put(str,str);
         }

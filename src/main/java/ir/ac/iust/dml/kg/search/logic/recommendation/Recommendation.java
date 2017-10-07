@@ -1,5 +1,7 @@
 package ir.ac.iust.dml.kg.search.logic.recommendation;
 
+import ir.ac.iust.dml.kg.search.logic.KGFetcher;
+
 public class Recommendation {
     private double score;
     private String description;
@@ -27,5 +29,10 @@ public class Recommendation {
 
     public void setUri(String uri) {
         this.uri = uri;
+    }
+
+    public void deduplicate() {
+        description = KGFetcher.intern(description);
+        uri = KGFetcher.intern((uri));
     }
 }

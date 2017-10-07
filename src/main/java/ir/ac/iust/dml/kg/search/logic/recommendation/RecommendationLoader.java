@@ -28,6 +28,8 @@ public class RecommendationLoader {
                         final String uri = rs.getString(1);
                         final String results = rs.getString(2);
                         final Recommendation[] recs = g.fromJson(results, Recommendation[].class);
+                        for (Recommendation rec : recs)
+                            rec.deduplicate();
                         recommendations.put(uri, recs);
                     }
                 }catch(Exception e){
