@@ -13,6 +13,7 @@ public class ReadCache {
         if(args.length < 3) {
             System.out.println("parameters: CacheOutputFolder VirtuosoIP GraphURI");
             System.out.println("default params: cache 127.0.0.1 http://fkg.iust.ac.ir/new");
+            System.exit(1);
         }
         String cacheOutputFolder = args[0];
         String virtuosoIP = args[1]; //"127.0.0.1";
