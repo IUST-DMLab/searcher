@@ -1,6 +1,7 @@
 package ir.ac.iust.dml.kg.search.logic;
 
 import com.google.common.base.Strings;
+import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
 import ir.ac.iust.dml.kg.resource.extractor.*;
 import ir.ac.iust.dml.kg.resource.extractor.tree.TreeResourceExtractor;
 import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
@@ -321,7 +322,7 @@ public class Searcher {
 
     private static IResourceExtractor setupNewExtractor() throws Exception {
         IResourceExtractor extractor = new TreeResourceExtractor();
-        try (IResourceReader reader = new ResourceCache(Config.prop.getProperty("cacheDirectory","cache"), true)) {
+        try (IResourceReader reader = new ResourceCache(ConfigReader.INSTANCE.getString("cacheDirectory","cache"), true)) {
             System.err.println("Loading resource-extractor from cache...");
             long t1 = System.currentTimeMillis();
             extractor.setup(reader, 10000);
