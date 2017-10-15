@@ -321,7 +321,7 @@ public class Searcher {
 
     private static IResourceExtractor setupNewExtractor() throws Exception {
         IResourceExtractor extractor = new TreeResourceExtractor();
-        try (IResourceReader reader = new ResourceCache("cache", true)) {
+        try (IResourceReader reader = new ResourceCache(Config.prop.getProperty("cacheDirectory","cache"), true)) {
             System.err.println("Loading resource-extractor from cache...");
             long t1 = System.currentTimeMillis();
             extractor.setup(reader, 10000);
