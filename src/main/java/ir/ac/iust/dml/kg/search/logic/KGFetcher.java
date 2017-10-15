@@ -184,6 +184,7 @@ public class KGFetcher {
 //    }
 
     public void loadFromTTL(String folderPath) throws IOException {
+        System.out.println("Loading TTLs from: " + folderPath);
         File folder = new File(folderPath);
         File[] files=folder.listFiles();
         Arrays.sort(files);
