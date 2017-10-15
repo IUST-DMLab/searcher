@@ -49,9 +49,10 @@ public class Searcher {
         String queryText = normalizer.normalize(keyword);
         final SearchResult result = new SearchResult();
         System.out.println(new Date() + " PROCESSING QUERY: " + keyword);
-        //Answering predicate-subject phrases
+        //Answering predicate-subject
+        // phrases
         try {
-            List<MatchedResource> matchedResourcesUnfiltered = extractor.search(queryText, true);
+            List<MatchedResource> matchedResourcesUnfiltered = extractor.search(queryText, true,false);
 
             List<Resource> allMatchedResources = matchedResourcesUnfiltered.stream()
                     .flatMap(mR -> {
