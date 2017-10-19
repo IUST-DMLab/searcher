@@ -12,6 +12,8 @@ import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.Triple;
 import ir.ac.iust.dml.kg.search.logic.recommendation.Recommendation;
 import ir.ac.iust.dml.kg.search.logic.recommendation.RecommendationLoader;
+import org.apache.commons.collections4.KeyValue;
+import org.apache.jena.atlas.lib.tuple.Tuple2;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
@@ -24,6 +26,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by ali on 4/16/17.
@@ -68,6 +71,7 @@ public class KGFetcher {
         System.out.println("Loading recommendations");
         recommendationsMap = RecommendationLoader.read();
         System.err.printf("KGFetcher loaded in %,d ms\n", (System.currentTimeMillis() - t1));
+        interns.clear();
     }
 
 //    public String fetchLabel(String uri, boolean filterNonPersian) {
@@ -141,10 +145,36 @@ public class KGFetcher {
         int relationCounter = 1;
         while(true) {
             String subjectRelatedUri = subjectUri + "/relation_" + relationCounter++;
-            if(!interns.containsKey(subjectRelatedUri))
+            if(!subjTripleMap.containsKey(subjectRelatedUri))
                 break;
-            if (searchDirection == SearchDirection.SUBJ_PROP || searchDirection == SearchDirection.BOTH)
-                resultUris.addAll(subjTripleMap.get(subjectRelatedUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getObject()).collect(Collectors.toSet()));
+            if (searchDirection == SearchDirection.SUBJ_PROP || searchDirection == SearchDirection.BOTH) {
+                Set<String> relationBasedResults = (subjTripleMap.get(subjectRelatedUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getObject()).collect(Collectors.toSet()));
+                for(String relationBasedResult : relationBasedResults){
+                    System.err.printf("Generating info for relational result: (subj: %s ,\t property: %s , result: %s)\n", subjectRelatedUri, propertyUri, relationBasedResult);
+                    StringBuilder info = new StringBuilder("(");
+                    subjTripleMap.get(subjectRelatedUri).stream().forEach(t -> {
+                        // Find label of predicate, if any
+                        String predLabel = Util.iriToLabel(t.getPredicate());
+                        if(subjTripleMap.containsKey(subjectUri)) {
+                            List<String> labels = subjTripleMap.get(subjectUri).stream().filter(v -> v.getPredicate().equals("http://www.w3.org/2000/01/rdf-schema#label")).map(v -> v.getPredicate()).collect(Collectors.toList());
+                            if(labels.size() > 0)
+                                predLabel = labels.get(0);
+                        }
+
+                        // Find label of object, if any
+                        String objLabel = Util.iriToLabel(t.getObject());
+                        if(subjTripleMap.containsKey(subjectUri)) {
+                            List<String> labels = subjTripleMap.get(subjectUri).stream().filter(v -> v.getObject().equals("http://www.w3.org/2000/01/rdf-schema#label")).map(v -> v.getObject()).collect(Collectors.toList());
+                            if(labels.size() > 0)
+                                objLabel = labels.get(0);
+                        }
+                        info.append(predLabel + ":" + objLabel);
+;                    });
+                    info.append(")");
+                    resultUris.add(relationBasedResult + "::" + info.toString());
+                }
+
+            }
             if (searchDirection == SearchDirection.PROP_SUBJ || searchDirection == SearchDirection.BOTH)
                 resultUris.addAll(objTripleMap.get(subjectRelatedUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getSubject()).collect(Collectors.toSet()));
         }
@@ -232,7 +262,6 @@ public class KGFetcher {
         System.out.printf("Finished subjTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
         serialize(objTripleMap,"objTripleMap.data");
         System.out.printf("Finished objTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);*/
-        interns.clear();
     }
 
     private synchronized void putTripleInMapsSynchronized(Statement stmt) {
