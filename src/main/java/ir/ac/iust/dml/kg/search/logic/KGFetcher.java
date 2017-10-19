@@ -138,6 +138,18 @@ public class KGFetcher {
         if(searchDirection == SearchDirection.PROP_SUBJ || searchDirection == SearchDirection.BOTH)
             resultUris.addAll(objTripleMap.get(subjectUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getSubject()).collect(Collectors.toSet()));
 
+        int relationCounter = 1;
+        while(true) {
+            String subjectRelatedUri = subjectUri + "/relation_" + relationCounter++;
+            if(!interns.containsKey(subjectRelatedUri))
+                break;
+            if (searchDirection == SearchDirection.SUBJ_PROP || searchDirection == SearchDirection.BOTH)
+                resultUris.addAll(subjTripleMap.get(subjectRelatedUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getObject()).collect(Collectors.toSet()));
+            if (searchDirection == SearchDirection.PROP_SUBJ || searchDirection == SearchDirection.BOTH)
+                resultUris.addAll(objTripleMap.get(subjectRelatedUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getSubject()).collect(Collectors.toSet()));
+        }
+
+
         for(String objectUri : resultUris){
             if(matchedObjectLabels.containsKey(objectUri))
                 continue;
