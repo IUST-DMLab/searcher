@@ -148,28 +148,35 @@ public class KGFetcher {
             if(!subjTripleMap.containsKey(subjectRelatedUri))
                 break;
             if (searchDirection == SearchDirection.SUBJ_PROP || searchDirection == SearchDirection.BOTH) {
-                Set<String> relationBasedResults = (subjTripleMap.get(subjectRelatedUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getObject()).collect(Collectors.toSet()));
+                Set<String> relationBasedResults = (subjTripleMap.get(subjectRelatedUri)
+                        .stream()
+                        .filter(t -> t.getPredicate().equals(propertyUri))
+                        .map(t -> t.getObject())
+                        .collect(Collectors.toSet()));
+
                 for(String relationBasedResult : relationBasedResults){
                     System.err.printf("Generating info for relational result: (subj: %s ,\t property: %s , result: %s)\n", subjectRelatedUri, propertyUri, relationBasedResult);
                     StringBuilder info = new StringBuilder("(");
-                    subjTripleMap.get(subjectRelatedUri).stream().forEach(t -> {
+                    for (Triple t : subjTripleMap.get(subjectRelatedUri)){
+                        System.err.printf("\t\tRelational Result: The info pair for collection is: subj: %s \t pred: %s \t obj: %s\n",t.getSubject(),t.getPredicate(),t.getObject());
                         // Find label of predicate, if any
                         String predLabel = Util.iriToLabel(t.getPredicate());
-                        if(subjTripleMap.containsKey(subjectUri)) {
-                            List<String> labels = subjTripleMap.get(subjectUri).stream().filter(v -> v.getPredicate().equals("http://www.w3.org/2000/01/rdf-schema#label")).map(v -> v.getPredicate()).collect(Collectors.toList());
+
+                        if(subjTripleMap.containsKey(t.getPredicate())) {
+                            List<String> labels = subjTripleMap.get(t.getPredicate()).stream().filter(v -> v.getPredicate().equals("http://www.w3.org/2000/01/rdf-schema#label")).map(v -> v.getObject()).collect(Collectors.toList());
                             if(labels.size() > 0)
                                 predLabel = labels.get(0);
                         }
 
                         // Find label of object, if any
                         String objLabel = Util.iriToLabel(t.getObject());
-                        if(subjTripleMap.containsKey(subjectUri)) {
-                            List<String> labels = subjTripleMap.get(subjectUri).stream().filter(v -> v.getObject().equals("http://www.w3.org/2000/01/rdf-schema#label")).map(v -> v.getObject()).collect(Collectors.toList());
+                        if(subjTripleMap.containsKey(t.getObject())) {
+                            List<String> labels = subjTripleMap.get(t.getObject()).stream().filter(v -> v.getPredicate().equals("http://www.w3.org/2000/01/rdf-schema#label")).map(v -> v.getObject()).collect(Collectors.toList());
                             if(labels.size() > 0)
                                 objLabel = labels.get(0);
                         }
                         info.append(predLabel + ":" + objLabel);
-;                    });
+;                    }
                     info.append(")");
                     resultUris.add(relationBasedResult + "::" + info.toString());
                 }
