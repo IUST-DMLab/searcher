@@ -156,12 +156,17 @@ public class KGFetcher {
 
                 for(String relationBasedResult : relationBasedResults){
                     System.err.printf("Generating info for relational result: (subj: %s ,\t property: %s , result: %s)\n", subjectRelatedUri, propertyUri, relationBasedResult);
-                    StringBuilder info = new StringBuilder("(");
-                    for (Triple t : subjTripleMap.get(subjectRelatedUri)){
+                    List<String> info = new ArrayList<>();
+
+                    List<Triple> otherTriplesForThisCollectionalResult = subjTripleMap.get(subjectRelatedUri)
+                            .stream()
+                            .filter(t -> !(t.getPredicate().contains("22-rdf-syntax-ns#type") || t.getPredicate().contains("/mainPredicate")))
+                            .collect(Collectors.toList());
+
+                    for (Triple t : otherTriplesForThisCollectionalResult){
                         System.err.printf("\t\tRelational Result: The info pair for collection is: subj: %s \t pred: %s \t obj: %s\n",t.getSubject(),t.getPredicate(),t.getObject());
                         // Find label of predicate, if any
                         String predLabel = Util.iriToLabel(t.getPredicate());
-
                         if(subjTripleMap.containsKey(t.getPredicate())) {
                             List<String> labels = subjTripleMap.get(t.getPredicate()).stream().filter(v -> v.getPredicate().equals("http://www.w3.org/2000/01/rdf-schema#label")).map(v -> v.getObject()).collect(Collectors.toList());
                             if(labels.size() > 0)
@@ -175,10 +180,10 @@ public class KGFetcher {
                             if(labels.size() > 0)
                                 objLabel = labels.get(0);
                         }
-                        info.append(predLabel + ":" + objLabel);
+                        info.add(predLabel + ":" + objLabel);
 ;                    }
-                    info.append(")");
-                    resultUris.add(relationBasedResult + "::" + info.toString());
+
+                    resultUris.add(relationBasedResult + " (" + info.stream().reduce((a,b) -> a + "," + b).toString().substring(1) + ")");
                 }
 
             }
