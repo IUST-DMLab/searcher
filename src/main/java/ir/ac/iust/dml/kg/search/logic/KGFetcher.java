@@ -165,25 +165,17 @@ public class KGFetcher {
 
                     for (Triple t : otherTriplesForThisCollectionalResult){
                         System.err.printf("\t\tRelational Result: The info pair for collection is: subj: %s \t pred: %s \t obj: %s\n",t.getSubject(),t.getPredicate(),t.getObject());
+
                         // Find label of predicate, if any
-                        String predLabel = Util.iriToLabel(t.getPredicate());
-                        if(subjTripleMap.containsKey(t.getPredicate())) {
-                            List<String> labels = subjTripleMap.get(t.getPredicate()).stream().filter(v -> v.getPredicate().equals("http://www.w3.org/2000/01/rdf-schema#label")).map(v -> v.getObject()).collect(Collectors.toList());
-                            if(labels.size() > 0)
-                                predLabel = labels.get(0);
-                        }
+                        String predLabel = getLabel(t.getPredicate());
 
                         // Find label of object, if any
-                        String objLabel = Util.iriToLabel(t.getObject());
-                        if(subjTripleMap.containsKey(t.getObject())) {
-                            List<String> labels = subjTripleMap.get(t.getObject()).stream().filter(v -> v.getPredicate().equals("http://www.w3.org/2000/01/rdf-schema#label")).map(v -> v.getObject()).collect(Collectors.toList());
-                            if(labels.size() > 0)
-                                objLabel = labels.get(0);
-                        }
-                        info.add(predLabel + ":" + objLabel);
+                        String objLabel = getLabel(t.getObject());
+
+                        info.add(predLabel + ": " + objLabel);
 ;                    }
 
-                    resultUris.add(relationBasedResult + " (" + info.stream().reduce((a,b) -> a + "," + b).toString().substring(1) + ")");
+                    resultUris.add(relationBasedResult + " (" + info.stream().reduce((a,b) -> a + ", " + b).toString().substring(1) + ")");
                 }
 
             }
@@ -225,6 +217,30 @@ public class KGFetcher {
             /*try { qexec.close(); } catch (Throwable th) { th.printStackTrace(); }*/
         //}
         return matchedObjectLabels;
+    }
+
+
+    /**
+     * Returns the [persian] label of a data instance.
+     * @param uri The input, which is not necessarily a URI.
+     * @return
+     */
+    private String getLabel(String uri) {
+
+        if(subjTripleMap.containsKey(uri)) {
+            List<String> labels = subjTripleMap.get(uri).stream().filter(v -> v.getPredicate().equals("http://www.w3.org/2000/01/rdf-schema#label")).map(v -> v.getObject()).collect(Collectors.toList());
+
+            //Return a persian label
+            for(String label: labels)
+                if(Util.textIsPersian(label))
+                    return label;
+
+            //Otherwise, return any available label:
+            if(!labels.isEmpty())
+                return labels.get(0);
+        }
+        //If nothing matched, extract label from the URI.
+        return Util.iriToLabel(uri);
     }
 
 //    public long fetchsubjPropertyObjRecords(long page, long pageSize) {
