@@ -183,6 +183,7 @@ public class KGFetcher {
             }
             //TODO: Implement collections-based retrieval for reverse direction (if it makes sense).
         }
+        System.out.println("Number of matched results: " + matchedObjectLabels.size() );
         return matchedObjectLabels;
     }
 

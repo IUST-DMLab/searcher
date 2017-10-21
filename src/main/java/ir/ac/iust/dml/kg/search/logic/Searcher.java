@@ -110,7 +110,6 @@ public class Searcher {
             System.out.println("\n\nentities:");
             entities.stream().forEach(r -> System.err.println("\t" + r.getIri()));
 
-
             // وای وای چه کار زشتی!
             doManualCorrections(properties,queryText);
 
@@ -126,15 +125,19 @@ public class Searcher {
                             if(olEntry.getKey().startsWith("http"))
                                 resultEntity.setLink(olEntry.getKey());
                             resultEntity.setReferenceUri(subjectR.getIri());
+                            System.out.println("Setting Title:");
                             resultEntity.setTitle(olEntry.getValue().getKey());
+                            System.out.println("Setting KV:");
                             if(olEntry.getValue().getValue() != null)
                                 resultEntity.setKeyValues(olEntry.getValue().getValue());
+                            System.out.println("Setting Description:");
                             resultEntity.setDescription("نتیجه‌ی گزاره‌ای");
                             resultEntity.setPhotoUrls(kgFetcher.fetchPhotoUrls(resultEntity.getLink()));
                             resultEntity.setResultType(ResultEntity.ResultType.RelationalResult);
                             if (!(Strings.isNullOrEmpty(subjectR.getLabel()) || Strings.isNullOrEmpty(propertyR.getLabel()))) {
                                 resultEntity.setDescription(resultEntity.getDescription() + ": [" + /*subjectR.getLabel()*/ Util.iriToLabel(subjectR.getIri()) + "] / [" + propertyR.getLabel() + "]");
                             }
+                            System.out.println("ADDING!");
                             result.getEntities().add(resultEntity);
                         }
                     } catch (Exception e) {
