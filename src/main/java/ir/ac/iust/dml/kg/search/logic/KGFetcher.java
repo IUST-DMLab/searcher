@@ -8,12 +8,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
+import ir.ac.iust.dml.kg.search.logic.data.DataValue;
+import ir.ac.iust.dml.kg.search.logic.data.DataValues;
 import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.Triple;
 import ir.ac.iust.dml.kg.search.logic.recommendation.Recommendation;
 import ir.ac.iust.dml.kg.search.logic.recommendation.RecommendationLoader;
-import org.apache.commons.collections4.KeyValue;
-import org.apache.jena.atlas.lib.tuple.Tuple2;
+import javafx.util.Pair;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
@@ -26,7 +27,6 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Created by ali on 4/16/17.
@@ -98,14 +98,14 @@ public class KGFetcher {
 //    }
 
     /**s
-     * Returns the (uri,label) pairs for each object statisfying subj-property-object-
+     * Returns the (uri,(label,keyValsMap)) pairs for each object statisfying subj-property-object-
      * @param subjectUri
      * @param propertyUri
      * @param searchDirection
      * @return
      */
-    public Map<String, String> fetchSubjPropObjQuery(String subjectUri, String propertyUri, SearchDirection searchDirection) {
-        Map<String, String> matchedObjectLabels = new TreeMap<String, String>();
+    public Map<String, Pair<String,Map<String, DataValues>>> fetchSubjPropObjQuery(String subjectUri, String propertyUri, SearchDirection searchDirection) {
+        Map<String, Pair<String,Map<String, DataValues>>> matchedObjectLabels = new TreeMap<>();
        /* String[] queryStrings = new String[2];
         queryStrings[0] =
                 "SELECT ?o " + //?l " +
@@ -138,10 +138,13 @@ public class KGFetcher {
                 String objectUri = o.toString();*/
         Set<String> resultUris = new LinkedHashSet<>();
         if(searchDirection == SearchDirection.SUBJ_PROP || searchDirection == SearchDirection.BOTH)
-            resultUris.addAll(subjTripleMap.get(subjectUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getObject()).collect(Collectors.toSet()));
+            subjTripleMap.get(subjectUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getObject()).collect(Collectors.toSet())
+                    .forEach(uri -> matchedObjectLabels.put(Util.cleanText(uri), new Pair<>(getLabel(uri),null)));
         if(searchDirection == SearchDirection.PROP_SUBJ || searchDirection == SearchDirection.BOTH)
-            resultUris.addAll(objTripleMap.get(subjectUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getSubject()).collect(Collectors.toSet()));
+            objTripleMap.get(subjectUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getSubject()).collect(Collectors.toSet())
+                    .forEach(uri -> matchedObjectLabels.put(Util.cleanText(uri), new Pair<>(getLabel(uri),null)));
 
+        //Collections-based retrieval
         int relationCounter = 1;
         while(true) {
             String subjectRelatedUri = subjectUri + "/relation_" + relationCounter++;
@@ -154,9 +157,10 @@ public class KGFetcher {
                         .map(t -> t.getObject())
                         .collect(Collectors.toSet()));
 
+                // KVs (comments) for each result is created here.
                 for(String relationBasedResult : relationBasedResults){
                     System.err.printf("Generating info for relational result: (subj: %s ,\t property: %s , result: %s)\n", subjectRelatedUri, propertyUri, relationBasedResult);
-                    List<String> info = new ArrayList<>();
+                    Map<String, DataValues> infoKV = new HashMap<>();
 
                     List<Triple> otherTriplesForThisCollectionalResult = subjTripleMap.get(subjectRelatedUri)
                             .stream()
@@ -172,50 +176,13 @@ public class KGFetcher {
                         // Find label of object, if any
                         String objLabel = getLabel(t.getObject());
 
-                        info.add(predLabel + ": " + objLabel);
-;                    }
-
-                    resultUris.add(relationBasedResult + " -- (" + info.stream().reduce((a,b) -> a + ", " + b).toString().substring(1) + ")");
+                        infoKV.put(predLabel,new DataValues(new DataValue(objLabel,t.getObject())));
+                    }
+                    matchedObjectLabels.put(Util.cleanText(relationBasedResult), new Pair<>(getLabel(relationBasedResult),infoKV));
                 }
-
             }
-            if (searchDirection == SearchDirection.PROP_SUBJ || searchDirection == SearchDirection.BOTH)
-                resultUris.addAll(objTripleMap.get(subjectRelatedUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getSubject()).collect(Collectors.toSet()));
+            //TODO: Implement collections-based retrieval for reverse direction (if it makes sense).
         }
-
-
-        for(String objectUri : resultUris){
-            if(matchedObjectLabels.containsKey(objectUri))
-                continue;
-
-            String objectLabel = objectUri;
-            try {
-                objectLabel = Searcher.getInstance().getExtractor().getResourceByIRI(objectUri).getLabel();
-                /*if (objectLabel == null || objectLabel.isEmpty()) {
-                    System.err.println("Lable for \"" + objectUri + "\" fetched from resourceExtractor is null/empty, trying DB");
-                    objectLabel = fetchLabel(objectUri, false);
-                }*/
-
-            } catch (Exception e) {
-                //e.printStackTrace();
-                System.err.println("No lablel found in ResourceExtractor for: " + objectUri);
-            }
-            if (objectLabel == null || objectLabel.isEmpty()) {
-                System.err.println("Lable for \"" + objectUri + "\" fetched from DB and/or resourceExtractor is null/empty, using Iri instead");
-                objectLabel = objectUri;
-            }
-
-            if(objectUri.contains("("))
-                objectLabel = Util.iriToLabel(objectUri);
-
-            System.out.println("++FOUND URI: " + objectUri);
-            System.out.println("++FOUND LABEL: " + objectLabel);
-
-            matchedObjectLabels.put(objectUri.replace("@fa","").replaceAll("@en", ""), objectLabel.replace("@fa","").replaceAll("@en", ""));
-        }
-        //close connection
-            /*try { qexec.close(); } catch (Throwable th) { th.printStackTrace(); }*/
-        //}
         return matchedObjectLabels;
     }
 
@@ -226,22 +193,40 @@ public class KGFetcher {
      * @return
      */
     private String getLabel(String uri) {
+        if(uri.contains("("))
+            return Util.iriToLabel(uri);
 
+
+        //Fetch label from resource extractor
+        String resourceExtractorLabel = new String();
+        try {
+            resourceExtractorLabel = Searcher.getInstance().getExtractor().getResourceByIRI(uri).getLabel();
+        } catch (Exception e) {
+            System.err.println("No lablel found in ResourceExtractor for: " + uri);
+        }
+        if (resourceExtractorLabel != null || resourceExtractorLabel.isEmpty()) {
+            System.err.println("Lable for \"" + uri + "\" fetched from resourceExtractor is null/empty, Trying TTL data");
+        }else {
+            return Util.cleanText(resourceExtractorLabel);
+        }
+
+        //Fetch label from TTL data
         if(subjTripleMap.containsKey(uri)) {
             List<String> labels = subjTripleMap.get(uri).stream().filter(v -> v.getPredicate().equals("http://www.w3.org/2000/01/rdf-schema#label")).map(v -> v.getObject()).collect(Collectors.toList());
 
             //Return a persian label
             for(String label: labels)
                 if(Util.textIsPersian(label))
-                    return label;
+                    return Util.cleanText(label);
                 else
                     System.err.println("\t\tUtil: For " + uri +  "\t value \"" + label + "\" is not persian.");
 
             //Otherwise, return any available label:
             if(!labels.isEmpty())
-                return labels.get(0);
+                return Util.cleanText(labels.get(0));
         }
-        //If nothing matched, extract label from the URI.
+
+        //Fetch label from URI
         return Util.iriToLabel(uri);
     }
 

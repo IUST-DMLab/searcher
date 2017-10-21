@@ -4,9 +4,11 @@ import com.google.common.base.Strings;
 import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
 import ir.ac.iust.dml.kg.resource.extractor.*;
 import ir.ac.iust.dml.kg.resource.extractor.tree.TreeResourceExtractor;
+import ir.ac.iust.dml.kg.search.logic.data.DataValues;
 import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.SearchResult;
 import ir.ac.iust.dml.kg.search.logic.recommendation.Recommendation;
+import javafx.util.Pair;
 import knowledgegraph.normalizer.PersianCharNormalizer;
 
 import java.nio.file.Files;
@@ -116,15 +118,17 @@ public class Searcher {
                 for (Resource propertyR : properties) {
                     try {
                         System.out.println("Trying combinatios for " + subjectR.getIri() + "\t & \t" + propertyR.getIri());
-                        Map<String, String> objectLables = kgFetcher.fetchSubjPropObjQuery(subjectR.getIri(), propertyR.getIri(),selectDirection(subjectR.getIri(),propertyR.getIri(),queryText));
-                        System.out.println("\t RESULTS FOUND: " + objectLables.keySet().size());
-                        for (Map.Entry<String, String> olEntry : objectLables.entrySet().stream().sorted((o1, o2) -> ((Double) kgFetcher.getRank(o2.getKey())).compareTo(kgFetcher.getRank(o1.getKey()))).collect(Collectors.toList())) {
+                        Map<String, Pair<String, Map<String, DataValues>>> objectLablesAndKVs = kgFetcher.fetchSubjPropObjQuery(subjectR.getIri(), propertyR.getIri(),selectDirection(subjectR.getIri(),propertyR.getIri(),queryText));
+                        System.out.println("\t RESULTS FOUND: " + objectLablesAndKVs.keySet().size());
+                        for (Map.Entry<String, Pair<String, Map<String, DataValues>>> olEntry : objectLablesAndKVs.entrySet().stream().sorted((o1, o2) -> ((Double) kgFetcher.getRank(o2.getKey())).compareTo(kgFetcher.getRank(o1.getKey()))).collect(Collectors.toList())) {
                             System.out.printf("Object: %s\t%s\n", olEntry.getKey(), olEntry.getValue());
                             ResultEntity resultEntity = new ResultEntity();
                             if(olEntry.getKey().startsWith("http"))
                                 resultEntity.setLink(olEntry.getKey());
                             resultEntity.setReferenceUri(subjectR.getIri());
-                            resultEntity.setTitle(olEntry.getValue());
+                            resultEntity.setTitle(olEntry.getValue().getKey());
+                            if(olEntry.getValue() != null)
+                                resultEntity.setKeyValues(olEntry.getValue().getValue());
                             resultEntity.setDescription("نتیجه‌ی گزاره‌ای");
                             resultEntity.setPhotoUrls(kgFetcher.fetchPhotoUrls(resultEntity.getLink()));
                             resultEntity.setResultType(ResultEntity.ResultType.RelationalResult);
