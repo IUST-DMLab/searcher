@@ -127,7 +127,7 @@ public class Searcher {
                                 resultEntity.setLink(olEntry.getKey());
                             resultEntity.setReferenceUri(subjectR.getIri());
                             resultEntity.setTitle(olEntry.getValue().getKey());
-                            if(olEntry.getValue() != null)
+                            if(olEntry.getValue().getValue() != null)
                                 resultEntity.setKeyValues(olEntry.getValue().getValue());
                             resultEntity.setDescription("نتیجه‌ی گزاره‌ای");
                             resultEntity.setPhotoUrls(kgFetcher.fetchPhotoUrls(resultEntity.getLink()));
