@@ -205,7 +205,7 @@ public class KGFetcher {
         } catch (Exception e) {
             System.err.println("\t\t\tgetLabel(): No lablel found in ResourceExtractor for: " + uri);
         }
-        if (resourceExtractorLabel != null || resourceExtractorLabel.isEmpty()) {
+        if (resourceExtractorLabel == null || resourceExtractorLabel.isEmpty()) {
             System.err.println("\t\t\tgetLabel():  for \"" + uri + "\" fetched from resourceExtractor is null/empty, Trying TTL data");
         }else {
             return Util.cleanText(resourceExtractorLabel);
