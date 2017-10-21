@@ -175,7 +175,7 @@ public class KGFetcher {
                         info.add(predLabel + ": " + objLabel);
 ;                    }
 
-                    resultUris.add(relationBasedResult + " (" + info.stream().reduce((a,b) -> a + ", " + b).toString().substring(1) + ")");
+                    resultUris.add(relationBasedResult + " -- (" + info.stream().reduce((a,b) -> a + ", " + b).toString().substring(1) + ")");
                 }
 
             }
@@ -234,6 +234,8 @@ public class KGFetcher {
             for(String label: labels)
                 if(Util.textIsPersian(label))
                     return label;
+                else
+                    System.err.println("\t\tUtil: For " + uri +  "\t value \"" + label + "\" is not persian.");
 
             //Otherwise, return any available label:
             if(!labels.isEmpty())
