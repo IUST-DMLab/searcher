@@ -68,7 +68,7 @@ public class KGFetcher {
         //graph = new VirtGraph("http://fkg.iust.ac.ir/new", "jdbc:virtuoso://" + virtuosoServer, virtuosoUser, virtuosoPass);
         //model = ModelFactory.createModelForGraph(graph);
         loadFromTTL(ConfigReader.INSTANCE.getString("ttlDirectory","ttls"));
-        System.out.println("Loading recommendations");
+        System.err.println("Loading recommendations");
         recommendationsMap = RecommendationLoader.read();
         System.err.printf("KGFetcher loaded in %,d ms\n", (System.currentTimeMillis() - t1));
         interns.clear();
@@ -183,7 +183,7 @@ public class KGFetcher {
             }
             //TODO: Implement collections-based retrieval for reverse direction (if it makes sense).
         }
-        System.out.println("Number of matched results: " + matchedObjectLabels.size() );
+        System.err.println("Number of matched results: " + matchedObjectLabels.size() );
         return matchedObjectLabels;
     }
 
@@ -203,10 +203,10 @@ public class KGFetcher {
         try {
             resourceExtractorLabel = Searcher.getInstance().getExtractor().getResourceByIRI(uri).getLabel();
         } catch (Exception e) {
-            System.err.println("No lablel found in ResourceExtractor for: " + uri);
+            System.err.println("\t\t\tgetLabel(): No lablel found in ResourceExtractor for: " + uri);
         }
         if (resourceExtractorLabel != null || resourceExtractorLabel.isEmpty()) {
-            System.err.println("Lable for \"" + uri + "\" fetched from resourceExtractor is null/empty, Trying TTL data");
+            System.err.println("\t\t\tgetLabel():  for \"" + uri + "\" fetched from resourceExtractor is null/empty, Trying TTL data");
         }else {
             return Util.cleanText(resourceExtractorLabel);
         }
@@ -242,7 +242,7 @@ public class KGFetcher {
 //    }
 
     public void loadFromTTL(String folderPath) throws IOException {
-        System.out.println("Loading TTLs from: " + folderPath);
+        System.err.println("Loading TTLs from: " + folderPath);
         File folder = new File(folderPath);
         File[] files=folder.listFiles();
         Arrays.sort(files);
@@ -267,17 +267,17 @@ public class KGFetcher {
                 Statement stmt = iter.next();
 
                 putTripleInMapsSynchronized(stmt);
-                //System.out.printf("%,d\t%s\t%s\t%s\t%s\n", ++count,file.toString(),s,p,o);
+                //System.err.printf("%,d\t%s\t%s\t%s\t%s\n", ++count,file.toString(),s,p,o);
                 count[0]++;
             }
             if (iter != null) iter.close();
-            System.out.printf("Finished loading %s in %,d ms from beginning\n", file.getName(), System.currentTimeMillis() - t);
+            System.err.printf("Finished loading %s in %,d ms from beginning\n", file.getName(), System.currentTimeMillis() - t);
         });
-        System.out.printf("Finished loading %,d triples in %,d ms \n", count[0], System.currentTimeMillis() - t);
+        System.err.printf("Finished loading %,d triples in %,d ms \n", count[0], System.currentTimeMillis() - t);
         /*serialize(subjTripleMap,"subjTripleMap.data");
-        System.out.printf("Finished subjTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
+        System.err.printf("Finished subjTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
         serialize(objTripleMap,"objTripleMap.data");
-        System.out.printf("Finished objTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);*/
+        System.err.printf("Finished objTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);*/
     }
 
     private synchronized void putTripleInMapsSynchronized(Statement stmt) {
@@ -321,7 +321,7 @@ public class KGFetcher {
         for(String t : texts) {
             JsonElement jelement = new JsonParser().parse(t);
             JsonObject jobject = jelement.getAsJsonObject();
-            System.out.println();
+            System.err.println();
         }
     }
 
@@ -338,7 +338,7 @@ public class KGFetcher {
     }
 
     public Multiset<String> getRecommendationsUri(String uri) {
-        System.out.println("Computing recommendations for " + uri);
+        System.err.println("Computing recommendations for " + uri);
         Set<String> neighbors = getNeighbors(uri);
         Multiset<String> relevants = HashMultiset.create();
         relevants.addAll(neighbors);
@@ -356,7 +356,7 @@ public class KGFetcher {
         triples.addAll(subjTripleMap.get(uri).stream().limit(LIMIT).map(t -> t.getObject()).collect(Collectors.toSet()));
         triples.addAll(objTripleMap.get(uri).stream().limit(LIMIT).map(t -> t.getSubject()).collect(Collectors.toSet()));
         Set<String> result = triples.stream().filter(s -> s.contains("/resource/")).filter(s -> !s.equals(uri)).collect(Collectors.toSet());
-        System.out.printf("Neighbors for %s \t =  %d\n", uri, result.size() );
+        System.err.printf("Neighbors for %s \t =  %d\n", uri, result.size() );
         return result;
     }
 }
