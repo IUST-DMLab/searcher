@@ -71,7 +71,10 @@ public class KGFetcher {
         System.err.println("Loading recommendations");
         recommendationsMap = RecommendationLoader.read();
         System.err.printf("KGFetcher loaded in %,d ms\n", (System.currentTimeMillis() - t1));
+
+        //clean up memory
         interns.clear();
+        interns = new ConcurrentHashMap<>();
     }
 
 //    public String fetchLabel(String uri, boolean filterNonPersian) {

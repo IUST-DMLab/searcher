@@ -77,7 +77,7 @@ public class Searcher {
                         System.err.println("\n\nList Members before filtering:");
                         list.stream().forEach(r -> System.err.println("\t" + r.getIri()));
 
-                        list.removeAll(blacklist);
+                        list = list.stream().filter(r -> !blacklist.contains(r.getIri())).collect(Collectors.toList());
                         System.err.println("\n\nList Members before filtering (without blacklisted items):");
                         list.stream().forEach(r -> System.err.println("\t" + r.getIri()));
 
