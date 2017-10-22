@@ -198,19 +198,19 @@ public class KGFetcher {
             return Util.iriToLabel(uri);
 
 
-       //Fetch label from resource extractor
-        String resourceExtractorLabel = new String();
-        try {
-            resourceExtractorLabel = Searcher.getInstance().getExtractor().getResourceByIRI(uri).getLabel();
-        } catch (Exception e) {
-            System.err.println("\t\t\tgetLabel(): No lablel found in ResourceExtractor for: " + uri);
-        }
-        if (resourceExtractorLabel == null || resourceExtractorLabel.isEmpty()) {
-            System.err.println("\t\t\tgetLabel():  for \"" + uri + "\" fetched from resourceExtractor is null/empty, Trying TTL data");
-        }else {
-            System.err.println("\t\t\tgetLabel(): Got label \"" + Util.cleanText(resourceExtractorLabel) +  "\" from resourceExtractor for uri: " + uri);
-            return Util.cleanText(resourceExtractorLabel);
-        }
+//       //Fetch label from resource extractor
+//        String resourceExtractorLabel = new String();
+//        try {
+//            resourceExtractorLabel = Searcher.getInstance().getExtractor().getResourceByIRI(uri).getLabel();
+//        } catch (Exception e) {
+//            System.err.println("\t\t\tgetLabel(): No lablel found in ResourceExtractor for: " + uri);
+//        }
+//        if (resourceExtractorLabel == null || resourceExtractorLabel.isEmpty()) {
+//            System.err.println("\t\t\tgetLabel():  for \"" + uri + "\" fetched from resourceExtractor is null/empty, Trying TTL data");
+//        }else {
+//            System.err.println("\t\t\tgetLabel(): Got label \"" + Util.cleanText(resourceExtractorLabel) +  "\" from resourceExtractor for uri: " + uri);
+//            return Util.cleanText(resourceExtractorLabel);
+//        }
 
         //Fetch label from TTL data
         if(subjTripleMap.containsKey(uri)) {
