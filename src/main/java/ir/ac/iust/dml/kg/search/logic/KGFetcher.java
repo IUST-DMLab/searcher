@@ -176,7 +176,7 @@ public class KGFetcher {
                         // Find label of object, if any
                         String objLabel = getLabel(t.getObject());
 
-                        infoKV.put(predLabel,new DataValues(new DataValue(objLabel,t.getObject())));
+                        infoKV.put(predLabel,new DataValues(new DataValue(objLabel, t.getObject().startsWith("http")? t.getObject() : "" )));
                     }
                     matchedObjectLabels.put(Util.cleanText(relationBasedResult), new Pair<>(getLabel(relationBasedResult),infoKV));
                 }
@@ -208,6 +208,7 @@ public class KGFetcher {
         if (resourceExtractorLabel == null || resourceExtractorLabel.isEmpty()) {
             System.err.println("\t\t\tgetLabel():  for \"" + uri + "\" fetched from resourceExtractor is null/empty, Trying TTL data");
         }else {
+            System.err.println("\t\t\tgetLabel(): Got label \"" + Util.cleanText(resourceExtractorLabel) +  "\" from resourceExtractor");
             return Util.cleanText(resourceExtractorLabel);
         }
 
@@ -217,12 +218,15 @@ public class KGFetcher {
 
             //Return a persian label
             for(String label: labels)
-                if(Util.textIsPersian(label))
+                if(Util.textIsPersian(label) || label.contains("@fa")) {
+                    System.err.println("\t\t\tgetLabel(): Got labelFound a persian label for \"" + uri + "\" in TTLs: " + label);
                     return Util.cleanText(label);
-                else
-                    System.err.println("\t\tUtil: For " + uri +  "\t value \"" + label + "\" is not persian.");
+                }else {
+                    System.err.println("\t\t\tgetLabel(): For " + uri + "\t value \"" + label + "\" is not persian.");
+                }
 
             //Otherwise, return any available label:
+            System.err.println("");
             if(!labels.isEmpty())
                 return Util.cleanText(labels.get(0));
         }
