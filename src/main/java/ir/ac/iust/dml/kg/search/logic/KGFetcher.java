@@ -198,7 +198,7 @@ public class KGFetcher {
             return Util.iriToLabel(uri);
 
 
-        //Fetch label from resource extractor
+       /* //Fetch label from resource extractor
         String resourceExtractorLabel = new String();
         try {
             resourceExtractorLabel = Searcher.getInstance().getExtractor().getResourceByIRI(uri).getLabel();
@@ -210,7 +210,7 @@ public class KGFetcher {
         }else {
             System.err.println("\t\t\tgetLabel(): Got label \"" + Util.cleanText(resourceExtractorLabel) +  "\" from resourceExtractor");
             return Util.cleanText(resourceExtractorLabel);
-        }
+        }*/
 
         //Fetch label from TTL data
         if(subjTripleMap.containsKey(uri)) {
