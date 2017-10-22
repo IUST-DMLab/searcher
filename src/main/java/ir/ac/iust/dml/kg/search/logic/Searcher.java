@@ -72,6 +72,7 @@ public class Searcher {
                             return r;
                         }).collect(Collectors.toList());
 
+                        list.removeAll()
                         System.err.println("\n\nList Members before filtering:");
                         list.stream().forEach(r -> System.err.println("\t" + r.getIri()));
 
