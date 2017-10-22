@@ -255,8 +255,8 @@ public class KGFetcher {
 
         Arrays.stream(files).parallel().forEach(file ->
         {
-            if(file.getName().contains("export.sh"))
-                return; //بیخیال فایل مجید بشیم!
+            if(!file.getName().toLowerCase().endsWith("ttl"))
+                return; //ignore non-ttl files and folders.
 
             Model model = ModelFactory.createDefaultModel();
             try {

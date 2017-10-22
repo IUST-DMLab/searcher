@@ -39,6 +39,7 @@ public class Searcher {
     public Searcher() throws Exception {
         instance = this;
         blacklist.addAll(Files.readAllLines(Paths.get(BLACKLIST_FILE_NAME)));
+        blacklist.forEach(s -> System.out.println("Blacklist: \"" + s + "\""));
         extractor = setupNewExtractor();
         kgFetcher = new KGFetcher();
     }
