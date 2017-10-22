@@ -322,8 +322,9 @@ public class Searcher {
 
     private static IResourceExtractor setupNewExtractor() throws Exception {
         IResourceExtractor extractor = new TreeResourceExtractor();
-        try (IResourceReader reader = new ResourceCache(ConfigReader.INSTANCE.getString("cacheDirectory","cache"), true)) {
-            System.err.println("Loading resource-extractor from cache...");
+        String cacheDirectory = ConfigReader.INSTANCE.getString("cacheDirectory","cache");
+        try (IResourceReader reader = new ResourceCache(cacheDirectory, true)) {
+            System.err.println("Loading resource-extractor from cache: " + cacheDirectory);
             long t1 = System.currentTimeMillis();
             extractor.setup(reader, 10000);
             //extractor.setup(reader, 1000000);
