@@ -193,7 +193,7 @@ public class KGFetcher {
      * @param uri The input, which is not necessarily a URI.
      * @return
      */
-    private String getLabel(String uri) {
+    public String getLabel(String uri) {
         if(uri.contains("("))
             return Util.iriToLabel(uri);
 

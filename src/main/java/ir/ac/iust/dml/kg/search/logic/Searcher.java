@@ -133,7 +133,7 @@ public class Searcher {
                             resultEntity.setPhotoUrls(kgFetcher.fetchPhotoUrls(resultEntity.getLink()));
                             resultEntity.setResultType(ResultEntity.ResultType.RelationalResult);
                             if (!(Strings.isNullOrEmpty(subjectR.getLabel()) || Strings.isNullOrEmpty(propertyR.getLabel()))) {
-                                resultEntity.setDescription(resultEntity.getDescription() + ": [" + /*subjectR.getLabel()*/ Util.iriToLabel(subjectR.getIri()) + "] / [" + propertyR.getLabel() + "]");
+                                resultEntity.setDescription(resultEntity.getDescription() + ": [" + /*subjectR.getLabel()*/ kgFetcher.getLabel(subjectR.getIri()) + "] / [" + propertyR.getLabel() + "]");
                             }
                             System.err.println("ADDING!");
                             result.getEntities().add(resultEntity);
