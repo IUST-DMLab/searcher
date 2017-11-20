@@ -12,13 +12,13 @@ import javafx.util.Pair;
 import knowledgegraph.normalizer.PersianCharNormalizer;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Searcher {
-    private static final String BLACKLIST_FILE_NAME = "black_list.txt";
+    private static final String BLACKLIST_FILE_NAME =
+        ConfigReader.INSTANCE.getString("searcher.blacklist", "black_list.txt");
     private static final int MAX_RECOMMENDATIONS = 20;
     private final IResourceExtractor extractor;
     private final KGFetcher kgFetcher;
@@ -328,7 +328,7 @@ public class Searcher {
 
     private static IResourceExtractor setupNewExtractor() throws Exception {
         IResourceExtractor extractor = new TreeResourceExtractor();
-        String cacheDirectory = ConfigReader.INSTANCE.getString("cacheDirectory","cache");
+        String cacheDirectory = ConfigReader.INSTANCE.getString("searcher.cache.dir", "cache");
         try (IResourceReader reader = new ResourceCache(cacheDirectory, true)) {
             System.err.println("Loading resource-extractor from cache: " + cacheDirectory);
             long t1 = System.currentTimeMillis();

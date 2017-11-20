@@ -67,7 +67,7 @@ public class KGFetcher {
         final String virtuosoPass = ConfigReader.INSTANCE.getString("virtuoso.password", "fkgVIRTUOSO2017");
         //graph = new VirtGraph("http://fkg.iust.ac.ir/new", "jdbc:virtuoso://" + virtuosoServer, virtuosoUser, virtuosoPass);
         //model = ModelFactory.createModelForGraph(graph);
-        loadFromTTL(ConfigReader.INSTANCE.getString("ttlDirectory","ttls"));
+      loadFromTTL(ConfigReader.INSTANCE.getString("searcher.ttl.dir", "ttls"));
         System.err.println("Loading recommendations");
         recommendationsMap = RecommendationLoader.read();
         System.err.printf("KGFetcher loaded in %,d ms\n", (System.currentTimeMillis() - t1));
