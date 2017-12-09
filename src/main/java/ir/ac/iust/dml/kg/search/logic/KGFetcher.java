@@ -8,10 +8,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
+import ir.ac.iust.dml.kg.search.logic.data.DataValue;
+import ir.ac.iust.dml.kg.search.logic.data.DataValues;
 import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.Triple;
 import ir.ac.iust.dml.kg.search.logic.recommendation.Recommendation;
 import ir.ac.iust.dml.kg.search.logic.recommendation.RecommendationLoader;
+import javafx.util.Pair;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
@@ -64,10 +67,14 @@ public class KGFetcher {
         final String virtuosoPass = ConfigReader.INSTANCE.getString("virtuoso.password", "fkgVIRTUOSO2017");
         //graph = new VirtGraph("http://fkg.iust.ac.ir/new", "jdbc:virtuoso://" + virtuosoServer, virtuosoUser, virtuosoPass);
         //model = ModelFactory.createModelForGraph(graph);
-        loadFromTTL("ttls");
-        System.out.println("Loading recommendations");
+      loadFromTTL(ConfigReader.INSTANCE.getString("searcher.ttl.dir", "ttls"));
+        System.err.println("Loading recommendations");
         recommendationsMap = RecommendationLoader.read();
         System.err.printf("KGFetcher loaded in %,d ms\n", (System.currentTimeMillis() - t1));
+
+        //clean up memory
+        interns.clear();
+        interns = new ConcurrentHashMap<>();
     }
 
 //    public String fetchLabel(String uri, boolean filterNonPersian) {
@@ -94,14 +101,14 @@ public class KGFetcher {
 //    }
 
     /**s
-     * Returns the (uri,label) pairs for each object statisfying subj-property-object-
+     * Returns the (uri,(label,keyValsMap)) pairs for each object statisfying subj-property-object-
      * @param subjectUri
      * @param propertyUri
      * @param searchDirection
      * @return
      */
-    public Map<String, String> fetchSubjPropObjQuery(String subjectUri, String propertyUri, SearchDirection searchDirection) {
-        Map<String, String> matchedObjectLabels = new TreeMap<String, String>();
+    public Map<String, Pair<String,Map<String, DataValues>>> fetchSubjPropObjQuery(String subjectUri, String propertyUri, SearchDirection searchDirection) {
+        Map<String, Pair<String,Map<String, DataValues>>> matchedObjectLabels = new TreeMap<>();
        /* String[] queryStrings = new String[2];
         queryStrings[0] =
                 "SELECT ?o " + //?l " +
@@ -134,43 +141,101 @@ public class KGFetcher {
                 String objectUri = o.toString();*/
         Set<String> resultUris = new LinkedHashSet<>();
         if(searchDirection == SearchDirection.SUBJ_PROP || searchDirection == SearchDirection.BOTH)
-            resultUris.addAll(subjTripleMap.get(subjectUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getObject()).collect(Collectors.toSet()));
+            subjTripleMap.get(subjectUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getObject()).collect(Collectors.toSet())
+                    .forEach(uri -> matchedObjectLabels.put(Util.cleanText(uri), new Pair<>(getLabel(uri),null)));
         if(searchDirection == SearchDirection.PROP_SUBJ || searchDirection == SearchDirection.BOTH)
-            resultUris.addAll(objTripleMap.get(subjectUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getSubject()).collect(Collectors.toSet()));
+            objTripleMap.get(subjectUri).stream().filter(t -> t.getPredicate().equals(propertyUri)).map(t -> t.getSubject()).collect(Collectors.toSet())
+                    .forEach(uri -> matchedObjectLabels.put(Util.cleanText(uri), new Pair<>(getLabel(uri),null)));
 
-        for(String objectUri : resultUris){
-            if(matchedObjectLabels.containsKey(objectUri))
-                continue;
+        //Collections-based retrieval
+        int relationCounter = 1;
+        while(true) {
+            String subjectRelatedUri = subjectUri + "/relation_" + relationCounter++;
+            if(!subjTripleMap.containsKey(subjectRelatedUri))
+                break;
+            if (searchDirection == SearchDirection.SUBJ_PROP || searchDirection == SearchDirection.BOTH) {
+                Set<String> relationBasedResults = (subjTripleMap.get(subjectRelatedUri)
+                        .stream()
+                        .filter(t -> t.getPredicate().equals(propertyUri))
+                        .map(t -> t.getObject())
+                        .collect(Collectors.toSet()));
 
-            String objectLabel = objectUri;
-            try {
-                objectLabel = Searcher.getInstance().getExtractor().getResourceByIRI(objectUri).getLabel();
-                /*if (objectLabel == null || objectLabel.isEmpty()) {
-                    System.err.println("Lable for \"" + objectUri + "\" fetched from resourceExtractor is null/empty, trying DB");
-                    objectLabel = fetchLabel(objectUri, false);
-                }*/
+                // KVs (comments) for each result is created here.
+                for(String relationBasedResult : relationBasedResults){
+                    System.err.printf("Generating info for relational result: (subj: %s ,\t property: %s , result: %s)\n", subjectRelatedUri, propertyUri, relationBasedResult);
+                    Map<String, DataValues> infoKV = new HashMap<>();
 
-            } catch (Exception e) {
-                //e.printStackTrace();
-                System.err.println("No lablel found in ResourceExtractor for: " + objectUri);
+                    List<Triple> otherTriplesForThisCollectionalResult = subjTripleMap.get(subjectRelatedUri)
+                            .stream()
+                            .filter(t -> !(t.getPredicate().contains("22-rdf-syntax-ns#type") || t.getPredicate().contains("/mainPredicate")))
+                            .collect(Collectors.toList());
+
+                    for (Triple t : otherTriplesForThisCollectionalResult){
+                        System.err.printf("\t\tRelational Result: The info pair for collection is: subj: %s \t pred: %s \t obj: %s\n",t.getSubject(),t.getPredicate(),t.getObject());
+
+                        // Find label of predicate, if any
+                        String predLabel = getLabel(t.getPredicate());
+
+                        // Find label of object, if any
+                        String objLabel = getLabel(t.getObject());
+
+                        infoKV.put(predLabel,new DataValues(new DataValue(objLabel, t.getObject().startsWith("http")? t.getObject() : "" )));
+                    }
+                    matchedObjectLabels.put(Util.cleanText(relationBasedResult), new Pair<>(getLabel(relationBasedResult),infoKV));
+                }
             }
-            if (objectLabel == null || objectLabel.isEmpty()) {
-                System.err.println("Lable for \"" + objectUri + "\" fetched from DB and/or resourceExtractor is null/empty, using Iri instead");
-                objectLabel = objectUri;
-            }
-
-            if(objectUri.contains("("))
-                objectLabel = Util.iriToLabel(objectUri);
-
-            System.out.println("++FOUND URI: " + objectUri);
-            System.out.println("++FOUND LABEL: " + objectLabel);
-
-            matchedObjectLabels.put(objectUri.replace("@fa","").replaceAll("@en", ""), objectLabel.replace("@fa","").replaceAll("@en", ""));
+            //TODO: Implement collections-based retrieval for reverse direction (if it makes sense).
         }
-        //close connection
-            /*try { qexec.close(); } catch (Throwable th) { th.printStackTrace(); }*/
-        //}
+        System.err.println("Number of matched results: " + matchedObjectLabels.size() );
         return matchedObjectLabels;
+    }
+
+
+    /**
+     * Returns the [persian] label of a data instance.
+     * @param uri The input, which is not necessarily a URI.
+     * @return
+     */
+    public String getLabel(String uri) {
+        if(uri.contains("("))
+            return Util.iriToLabel(uri);
+
+
+//       //Fetch label from resource extractor
+//        String resourceExtractorLabel = new String();
+//        try {
+//            resourceExtractorLabel = Searcher.getInstance().getExtractor().getResourceByIRI(uri).getLabel();
+//        } catch (Exception e) {
+//            System.err.println("\t\t\tgetLabel(): No lablel found in ResourceExtractor for: " + uri);
+//        }
+//        if (resourceExtractorLabel == null || resourceExtractorLabel.isEmpty()) {
+//            System.err.println("\t\t\tgetLabel():  for \"" + uri + "\" fetched from resourceExtractor is null/empty, Trying TTL data");
+//        }else {
+//            System.err.println("\t\t\tgetLabel(): Got label \"" + Util.cleanText(resourceExtractorLabel) +  "\" from resourceExtractor for uri: " + uri);
+//            return Util.cleanText(resourceExtractorLabel);
+//        }
+
+        //Fetch label from TTL data
+        if(subjTripleMap.containsKey(uri)) {
+            List<String> labels = subjTripleMap.get(uri).stream().filter(v -> v.getPredicate().equals("http://www.w3.org/2000/01/rdf-schema#label")).map(v -> v.getObject()).collect(Collectors.toList());
+
+            //Return a persian label
+            for(String label: labels)
+                if(Util.textIsPersian(label) || label.contains("@fa")) {
+                    System.err.println("\t\t\tgetLabel(): Got labelFound a persian label for \"" + uri + "\" in TTLs: " + label);
+                    return Util.cleanText(label);
+                }else {
+                    System.err.println("\t\t\tgetLabel(): For " + uri + "\t value \"" + label + "\" is not persian.");
+                }
+
+            //Otherwise, return any available label:
+            System.err.println("");
+            if(!labels.isEmpty())
+                return Util.cleanText(labels.get(0));
+        }
+
+        //Fetch label from URI
+        return Util.iriToLabel(uri);
     }
 
 //    public long fetchsubjPropertyObjRecords(long page, long pageSize) {
@@ -184,6 +249,7 @@ public class KGFetcher {
 //    }
 
     public void loadFromTTL(String folderPath) throws IOException {
+        System.err.println("Loading TTLs from: " + folderPath);
         File folder = new File(folderPath);
         File[] files=folder.listFiles();
         Arrays.sort(files);
@@ -192,8 +258,8 @@ public class KGFetcher {
 
         Arrays.stream(files).parallel().forEach(file ->
         {
-            if(file.getName().contains("export.sh"))
-                return; //بیخیال فایل مجید بشیم!
+            if(!file.getName().toLowerCase().endsWith("ttl"))
+                return; //ignore non-ttl files and folders.
 
             Model model = ModelFactory.createDefaultModel();
             try {
@@ -208,18 +274,17 @@ public class KGFetcher {
                 Statement stmt = iter.next();
 
                 putTripleInMapsSynchronized(stmt);
-                //System.out.printf("%,d\t%s\t%s\t%s\t%s\n", ++count,file.toString(),s,p,o);
+                //System.err.printf("%,d\t%s\t%s\t%s\t%s\n", ++count,file.toString(),s,p,o);
                 count[0]++;
             }
             if (iter != null) iter.close();
-            System.out.printf("Finished loading %s in %,d ms from beginning\n", file.getName(), System.currentTimeMillis() - t);
+            System.err.printf("Finished loading %s in %,d ms from beginning\n", file.getName(), System.currentTimeMillis() - t);
         });
-        System.out.printf("Finished loading %,d triples in %,d ms \n", count[0], System.currentTimeMillis() - t);
+        System.err.printf("Finished loading %,d triples in %,d ms \n", count[0], System.currentTimeMillis() - t);
         /*serialize(subjTripleMap,"subjTripleMap.data");
-        System.out.printf("Finished subjTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
+        System.err.printf("Finished subjTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);
         serialize(objTripleMap,"objTripleMap.data");
-        System.out.printf("Finished objTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);*/
-        interns.clear();
+        System.err.printf("Finished objTripleMap serialization in: %,d ms \n", System.currentTimeMillis() - t);*/
     }
 
     private synchronized void putTripleInMapsSynchronized(Statement stmt) {
@@ -263,7 +328,7 @@ public class KGFetcher {
         for(String t : texts) {
             JsonElement jelement = new JsonParser().parse(t);
             JsonObject jobject = jelement.getAsJsonObject();
-            System.out.println();
+            System.err.println();
         }
     }
 
@@ -280,7 +345,7 @@ public class KGFetcher {
     }
 
     public Multiset<String> getRecommendationsUri(String uri) {
-        System.out.println("Computing recommendations for " + uri);
+        System.err.println("Computing recommendations for " + uri);
         Set<String> neighbors = getNeighbors(uri);
         Multiset<String> relevants = HashMultiset.create();
         relevants.addAll(neighbors);
@@ -298,7 +363,7 @@ public class KGFetcher {
         triples.addAll(subjTripleMap.get(uri).stream().limit(LIMIT).map(t -> t.getObject()).collect(Collectors.toSet()));
         triples.addAll(objTripleMap.get(uri).stream().limit(LIMIT).map(t -> t.getSubject()).collect(Collectors.toSet()));
         Set<String> result = triples.stream().filter(s -> s.contains("/resource/")).filter(s -> !s.equals(uri)).collect(Collectors.toSet());
-        System.out.printf("Neighbors for %s \t =  %d\n", uri, result.size() );
+        System.err.printf("Neighbors for %s \t =  %d\n", uri, result.size() );
         return result;
     }
 }

@@ -1,6 +1,7 @@
 package ir.ac.iust.dml.kg.search.logic.recommendation;
 
 import com.google.gson.Gson;
+import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -17,7 +18,13 @@ public class RecommendationLoader {
             return recommendations;
 
         final Connection con = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/recommendations?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false", "paydar", "paydar");
+            "jdbc:mysql://" +
+                ConfigReader.INSTANCE.getString("recommendation.sql.address", "localhost:3306") +
+                "/recommendations?useUnicode=true" +
+                "&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false" +
+                "&serverTimezone=UTC&useSSL=false",
+            ConfigReader.INSTANCE.getString("recommendation.sql.user", "paydar"),
+            ConfigReader.INSTANCE.getString("recommendation.sql.password", "paydar"));
         try {
             for(int i=2; i<=10; i++) {
                 try {

@@ -30,6 +30,10 @@ public class Util {
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
+    public static String cleanText(String uri){
+        return uri.replace("@fa","").replaceAll("@en", "");
+    }
+
 
     public static String iriToLabel(String iri)
     {

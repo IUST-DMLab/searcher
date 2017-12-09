@@ -1,21 +1,24 @@
 package ir.ac.iust.dml.kg.search.logic;
 
 import com.google.common.base.Strings;
+import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
 import ir.ac.iust.dml.kg.resource.extractor.*;
 import ir.ac.iust.dml.kg.resource.extractor.tree.TreeResourceExtractor;
+import ir.ac.iust.dml.kg.search.logic.data.DataValues;
 import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.SearchResult;
 import ir.ac.iust.dml.kg.search.logic.recommendation.Recommendation;
+import javafx.util.Pair;
 import knowledgegraph.normalizer.PersianCharNormalizer;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Searcher {
-    private static final String BLACKLIST_FILE_NAME = "black_list.txt";
+    private static final String BLACKLIST_FILE_NAME =
+        ConfigReader.INSTANCE.getString("searcher.blacklist", "black_list.txt");
     private static final int MAX_RECOMMENDATIONS = 20;
     private final IResourceExtractor extractor;
     private final KGFetcher kgFetcher;
@@ -28,9 +31,7 @@ public class Searcher {
 
     public static Searcher getInstance() throws Exception {
         synchronized (semaphore) {
-            System.out.println("getting instance of Searcher");
             if (instance != null) return instance;
-            System.out.println("creating instance of Searcher");
             return new Searcher();
         }
     }
@@ -38,6 +39,7 @@ public class Searcher {
     public Searcher() throws Exception {
         instance = this;
         blacklist.addAll(Files.readAllLines(Paths.get(BLACKLIST_FILE_NAME)));
+        blacklist.forEach(s -> System.out.println("Blacklist: \"" + s + "\""));
         extractor = setupNewExtractor();
         kgFetcher = new KGFetcher();
     }
@@ -48,10 +50,11 @@ public class Searcher {
 
         String queryText = normalizer.normalize(keyword);
         final SearchResult result = new SearchResult();
-        System.out.println(new Date() + " PROCESSING QUERY: " + keyword);
-        //Answering predicate-subject phrases
+        System.err.println(new Date() + " PROCESSING QUERY: " + keyword);
+        //Answering predicate-subject
+        // phrases
         try {
-            List<MatchedResource> matchedResourcesUnfiltered = extractor.search(queryText, true);
+            List<MatchedResource> matchedResourcesUnfiltered = extractor.search(queryText, true,false);
 
             List<Resource> allMatchedResources = matchedResourcesUnfiltered.stream()
                     .flatMap(mR -> {
@@ -70,7 +73,12 @@ public class Searcher {
                             return r;
                         }).collect(Collectors.toList());
 
-                        System.out.println("\n\nList Members before filtering:");
+
+                        System.err.println("\n\nList Members before filtering:");
+                        list.stream().forEach(r -> System.err.println("\t" + r.getIri()));
+
+                        list = list.stream().filter(r -> !blacklist.contains(r.getIri())).collect(Collectors.toList());
+                        System.err.println("\n\nList Members before filtering (without blacklisted items):");
                         list.stream().forEach(r -> System.err.println("\t" + r.getIri()));
 
                         //if there is a detected property, skip all other entities
@@ -84,7 +92,7 @@ public class Searcher {
                     .filter(r -> !blacklist.contains(r.getIri()))
                     .collect(Collectors.toList());
 
-            System.out.println("\n\nallMatchedResources:");
+            System.err.println("\n\nallMatchedResources:");
             allMatchedResources.stream().forEach(r -> System.err.println("\t" + r.getIri()));
 
 
@@ -93,7 +101,7 @@ public class Searcher {
                     .filter(r -> r.getType().toString().contains("Property"))
                     .collect(Collectors.toList());
 
-            System.out.println("\n\nproperties:");
+            System.err.println("\n\nproperties:");
             properties.stream().forEach(r -> System.err.println("\t" + r.getIri()));
 
             List<Resource> entities = allMatchedResources.stream()
@@ -103,9 +111,8 @@ public class Searcher {
                     .sorted((o1, o2) -> ((Double) kgFetcher.getRank(o2.getIri())).compareTo(kgFetcher.getRank(o1.getIri())))
                     .collect(Collectors.toList());
 
-            System.out.println("\n\nentities:");
+            System.err.println("\n\nentities:");
             entities.stream().forEach(r -> System.err.println("\t" + r.getIri()));
-
 
             // وای وای چه کار زشتی!
             doManualCorrections(properties,queryText);
@@ -113,31 +120,32 @@ public class Searcher {
             for (Resource subjectR : entities) {
                 for (Resource propertyR : properties) {
                     try {
-                        System.out.println("Trying combinatios for " + subjectR.getIri() + "\t & \t" + propertyR.getIri());
-                        Map<String, String> objectLables = kgFetcher.fetchSubjPropObjQuery(subjectR.getIri(), propertyR.getIri(),selectDirection(subjectR.getIri(),propertyR.getIri(),queryText));
-                        System.out.println("\t RESULTS FOUND: " + objectLables.keySet().size());
-                        for (Map.Entry<String, String> olEntry : objectLables.entrySet().stream().sorted((o1, o2) -> ((Double) kgFetcher.getRank(o2.getKey())).compareTo(kgFetcher.getRank(o1.getKey()))).collect(Collectors.toList())) {
-                            System.out.printf("Object: %s\t%s\n", olEntry.getKey(), olEntry.getValue());
+                        System.err.println("Trying combinatios for " + subjectR.getIri() + "\t & \t" + propertyR.getIri());
+                        Map<String, Pair<String, Map<String, DataValues>>> objectLablesAndKVs = kgFetcher.fetchSubjPropObjQuery(subjectR.getIri(), propertyR.getIri(),selectDirection(subjectR.getIri(),propertyR.getIri(),queryText));
+                        System.err.println("\t RESULTS FOUND: " + objectLablesAndKVs.keySet().size());
+                        for (Map.Entry<String, Pair<String, Map<String, DataValues>>> olEntry : objectLablesAndKVs.entrySet().stream().sorted((o1, o2) -> ((Double) kgFetcher.getRank(o2.getKey())).compareTo(kgFetcher.getRank(o1.getKey()))).collect(Collectors.toList())) {
+                            System.err.printf("Object: %s\t%s\n", olEntry.getKey(), olEntry.getValue());
                             ResultEntity resultEntity = new ResultEntity();
                             if(olEntry.getKey().startsWith("http"))
                                 resultEntity.setLink(olEntry.getKey());
                             resultEntity.setReferenceUri(subjectR.getIri());
-                            resultEntity.setTitle(olEntry.getValue());
+                            System.err.println("Setting Title:");
+                            resultEntity.setTitle(olEntry.getValue().getKey());
+                            System.err.println("Setting KV:");
+                            if(olEntry.getValue().getValue() != null)
+                                resultEntity.setKeyValues(olEntry.getValue().getValue());
+                            System.err.println("Setting Description:");
                             resultEntity.setDescription("نتیجه‌ی گزاره‌ای");
                             resultEntity.setPhotoUrls(kgFetcher.fetchPhotoUrls(resultEntity.getLink()));
                             resultEntity.setResultType(ResultEntity.ResultType.RelationalResult);
                             if (!(Strings.isNullOrEmpty(subjectR.getLabel()) || Strings.isNullOrEmpty(propertyR.getLabel()))) {
-                                resultEntity.setDescription(resultEntity.getDescription() + ": [" + /*subjectR.getLabel()*/ Util.iriToLabel(subjectR.getIri()) + "] / [" + propertyR.getLabel() + "]");
+                                resultEntity.setDescription(resultEntity.getDescription() + ": [" + /*subjectR.getLabel()*/ kgFetcher.getLabel(subjectR.getIri()) + "] / [" + propertyR.getLabel() + "]");
                             }
+                            System.err.println("ADDING!");
                             result.getEntities().add(resultEntity);
                         }
                     } catch (Exception e) {
-                        String emsg = e.getMessage().toLowerCase();
                         e.printStackTrace();
-                        if(emsg.contains("broken pipe") || emsg.contains("connection refused")){
-                            System.err.println((new Date()) + "\t EXITING!");
-                            System.exit(1);
-                        }
                     }
                 }
             }
@@ -178,7 +186,7 @@ public class Searcher {
 
 
     public Collection<ResultEntity> getRecommendations(String uri,int max) {
-        System.out.println("Searcher: Computing recommendations for: " + uri);
+        System.err.println("Searcher: Computing recommendations for: " + uri);
         //Multiset<String> recomUris = kgFetcher.getRecommendationsUri(uri);
         List<ResultEntity> results = new ArrayList<>();
 
@@ -320,8 +328,9 @@ public class Searcher {
 
     private static IResourceExtractor setupNewExtractor() throws Exception {
         IResourceExtractor extractor = new TreeResourceExtractor();
-        try (IResourceReader reader = new ResourceCache("cache", true)) {
-            System.err.println("Loading resource-extractor from cache...");
+        String cacheDirectory = ConfigReader.INSTANCE.getString("searcher.cache.dir", "cache");
+        try (IResourceReader reader = new ResourceCache(cacheDirectory, true)) {
+            System.err.println("Loading resource-extractor from cache: " + cacheDirectory);
             long t1 = System.currentTimeMillis();
             extractor.setup(reader, 10000);
             //extractor.setup(reader, 1000000);
