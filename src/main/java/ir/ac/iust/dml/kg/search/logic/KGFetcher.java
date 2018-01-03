@@ -20,6 +20,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 
+import javax.naming.directory.Attribute;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -40,6 +41,7 @@ public class KGFetcher {
     public Map<String, Recommendation[]> getRecommendationsMap() {
         return recommendationsMap;
     }
+    HashSet<String> predicateBlackList = new HashSet<>(Arrays.asList("http://dublincore.org/2012/06/14/dcterms#subject", "http://fkg.iust.ac.ir/ontology/variantLabel","http://fkg.iust.ac.ir/ontology/wikiPageRedirects","http://fkg.iust.ac.ir/ontology/abstract"));
 
     private Map<String, Recommendation[]> recommendationsMap = null;
 
@@ -288,6 +290,8 @@ public class KGFetcher {
     }
 
     private synchronized void putTripleInMapsSynchronized(Statement stmt) {
+        if(predicateBlackList.contains(stmt.getPredicate().toString()))
+            return;
         String s = intern(stmt.getSubject().toString());
         String p = intern(stmt.getPredicate().toString());
         String o = intern(stmt.getObject().toString());
@@ -316,6 +320,8 @@ public class KGFetcher {
         }
         return interns.get(str);
     }
+
+
 
     public static void main(String[] args) throws IOException {
         //KGFetcher fetcher = new KGFetcher();;
