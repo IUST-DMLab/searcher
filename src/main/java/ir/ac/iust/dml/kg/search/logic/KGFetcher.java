@@ -42,6 +42,8 @@ public class KGFetcher {
         return recommendationsMap;
     }
     HashSet<String> predicateBlackList = new HashSet<>(Arrays.asList("http://dublincore.org/2012/06/14/dcterms#subject", "http://fkg.iust.ac.ir/ontology/variantLabel","http://fkg.iust.ac.ir/ontology/wikiPageRedirects","http://fkg.iust.ac.ir/ontology/abstract"));
+    List<String> subjObjBlacklistedPrefixes = Arrays.asList("http://fkg.iust.ac.ir/category/");
+
 
     private Map<String, Recommendation[]> recommendationsMap = null;
 
@@ -291,6 +293,8 @@ public class KGFetcher {
 
     private synchronized void putTripleInMapsSynchronized(Statement stmt) {
         if(predicateBlackList.contains(stmt.getPredicate().toString()))
+            return;
+        if(subjObjBlacklistedPrefixes.stream().anyMatch(prefix -> stmt.getSubject().toString().startsWith(prefix) || stmt.getObject().toString().startsWith(prefix)))
             return;
         String s = intern(stmt.getSubject().toString());
         String p = intern(stmt.getPredicate().toString());
