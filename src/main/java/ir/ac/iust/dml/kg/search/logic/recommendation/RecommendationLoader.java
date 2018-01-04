@@ -23,8 +23,8 @@ public class RecommendationLoader {
                 "/recommendations?useUnicode=true" +
                 "&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false" +
                 "&serverTimezone=UTC&useSSL=false",
-            ConfigReader.INSTANCE.getString("recommendation.sql.user", "paydar"),
-            ConfigReader.INSTANCE.getString("recommendation.sql.password", "paydar"));
+            ConfigReader.INSTANCE.getString("recommendation.sql.user", "recommendation_user"),
+            ConfigReader.INSTANCE.getString("recommendation.sql.password", "recommendation_pass"));
         try {
             for(int i=2; i<=10; i++) {
                 try {

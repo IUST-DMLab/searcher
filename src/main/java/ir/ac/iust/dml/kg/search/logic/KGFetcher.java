@@ -20,7 +20,6 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 
-import javax.naming.directory.Attribute;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -73,7 +72,15 @@ public class KGFetcher {
         //model = ModelFactory.createModelForGraph(graph);
       loadFromTTL(ConfigReader.INSTANCE.getString("searcher.ttl.dir", "ttls"));
         System.err.println("Loading recommendations");
-        recommendationsMap = RecommendationLoader.read();
+        //ignoring recommendation loading errors in IDE debug mode.
+        boolean isDebug = java.lang.management.ManagementFactory.getRuntimeMXBean().
+            getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
+        if (isDebug) {
+            try {
+                recommendationsMap = RecommendationLoader.read();
+            } catch (Exception ignored) {
+            }
+        } else recommendationsMap = RecommendationLoader.read();
         System.err.printf("KGFetcher loaded in %,d ms\n", (System.currentTimeMillis() - t1));
 
         //clean up memory
