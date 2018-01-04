@@ -40,7 +40,9 @@ public class KGFetcher {
     public Map<String, Recommendation[]> getRecommendationsMap() {
         return recommendationsMap;
     }
-    HashSet<String> predicateBlackList = new HashSet<>(Arrays.asList("http://dublincore.org/2012/06/14/dcterms#subject", "http://fkg.iust.ac.ir/ontology/variantLabel","http://fkg.iust.ac.ir/ontology/wikiPageRedirects","http://fkg.iust.ac.ir/ontology/abstract"));
+    HashSet<String> predicateBlackList = new HashSet<>(Arrays.asList("http://dublincore.org/2012/06/14/dcterms#subject", "http://fkg.iust.ac.ir/ontology/variantLabel",
+                                                        "http://fkg.iust.ac.ir/ontology/wikiPageRedirects","http://fkg.iust.ac.ir/ontology/abstract",
+                                                        "http://fkg.iust.ac.ir/ontology/latitudeDirection", "http://fkg.iust.ac.ir/ontology/longitudeDirection"));
     List<String> subjObjBlacklistedPrefixes = Arrays.asList("http://fkg.iust.ac.ir/category/");
 
 
