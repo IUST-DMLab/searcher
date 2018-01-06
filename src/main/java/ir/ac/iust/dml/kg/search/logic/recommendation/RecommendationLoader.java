@@ -26,6 +26,7 @@ public class RecommendationLoader {
                 "&serverTimezone=UTC&useSSL=false",
             ConfigReader.INSTANCE.getString("recommendation.sql.user", "recommendation_user"),
             ConfigReader.INSTANCE.getString("recommendation.sql.password", "recommendation_pass"));
+        long numRecs=0, numFilteredRecs=0;
         try {
             for(int i=2; i<=10; i++) {
                 try {
@@ -36,11 +37,14 @@ public class RecommendationLoader {
                         final String uri = rs.getString(1);
                         final String results = rs.getString(2);
                         final Recommendation[] allRecs = g.fromJson(results, Recommendation[].class);
+                        if(allRecs!= null) numRecs += allRecs.length;
 
                         //filter out non-resource entities
                         final Recommendation[] filteredRecs = Arrays.stream(allRecs)
                                 .filter(rec -> rec.getUri() != null && rec.getUri().contains("/resource/"))
                                 .toArray(Recommendation[]::new);
+
+                        if(filteredRecs!= null) numFilteredRecs += filteredRecs.length;
 
                         for (Recommendation rec : filteredRecs)
                             rec.deduplicate();
@@ -53,6 +57,7 @@ public class RecommendationLoader {
             }
         } finally {
             con.close();
+            System.out.printf("Recommendations loaded:\t Total:%,d \t Remained: %,d\n", numRecs,numFilteredRecs);
         }
         return recommendations;
     }
