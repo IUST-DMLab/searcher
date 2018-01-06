@@ -371,7 +371,6 @@ public class KGFetcher {
         for(String nb : neighbors){
             relevants.addAll(getNeighbors(nb));
         }
-
         return relevants;
     }
 

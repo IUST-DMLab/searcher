@@ -6,6 +6,7 @@ import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.*;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,10 +35,16 @@ public class RecommendationLoader {
                     while (rs.next()) {
                         final String uri = rs.getString(1);
                         final String results = rs.getString(2);
-                        final Recommendation[] recs = g.fromJson(results, Recommendation[].class);
-                        for (Recommendation rec : recs)
+                        final Recommendation[] allRecs = g.fromJson(results, Recommendation[].class);
+
+                        //filter out non-resource entities
+                        final Recommendation[] filteredRecs = Arrays.stream(allRecs)
+                                .filter(rec -> rec.getUri() != null && rec.getUri().contains("/resource/"))
+                                .toArray(Recommendation[]::new);
+
+                        for (Recommendation rec : filteredRecs)
                             rec.deduplicate();
-                        recommendations.put(uri, recs);
+                        recommendations.put(uri, filteredRecs);
                     }
                 }catch(Exception e){
                     System.err.println("Error while loading recommendations" + i);
