@@ -176,7 +176,7 @@ public class Searcher {
 
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        }y
         return result;
     }
 
@@ -208,8 +208,6 @@ public class Searcher {
         }
         return results;
     }
-
-
 
 
     private SearchDirection selectDirection(String subjectIri, String propertyIri, String queryText) {
