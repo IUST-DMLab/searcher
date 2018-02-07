@@ -312,7 +312,7 @@ public class KGFetcher {
             objTripleMap.put(o,triple);
     }
 
-    private String objectToString(RDFNode o) {
+        private String objectToString(RDFNode o) {
         if (o instanceof Resource)
             return o.toString();
         else if (o instanceof Literal) {
@@ -323,7 +323,7 @@ public class KGFetcher {
                 final String dataType = l.getDatatype().toString();
                 if (dataType.endsWith("long")) {
                     return String.valueOf(l.getLong());
-                } else if (dataType.endsWith("int")) {
+                } else if (dataType.endsWith("int") || dataType.endsWith("integer")) {
                     return String.valueOf(l.getInt());
                 } else if (dataType.endsWith("short")) {
                     return String.valueOf(l.getShort());
@@ -335,10 +335,10 @@ public class KGFetcher {
                     return String.valueOf(l.getByte());
                 } else if (dataType.endsWith("float")) {
                     return String.valueOf(l.getFloat());
-                } else if (dataType.endsWith("dateTime")) {
+                } else if (dataType.endsWith("dateTime") || dataType.endsWith("date")  || dataType.endsWith("time")) {
                     return String.valueOf(l.getValue().toString());
                 } else {
-                    return l.getDatatype().toString();
+                    return o.toString();
                 }
             }
         }
