@@ -16,12 +16,14 @@ import ir.ac.iust.dml.kg.search.logic.recommendation.Recommendation;
 import ir.ac.iust.dml.kg.search.logic.recommendation.RecommendationLoader;
 import javafx.util.Pair;
 import org.apache.jena.datatypes.RDFDatatype;
+import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.rdf.model.*;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -312,7 +314,10 @@ public class KGFetcher {
             objTripleMap.put(o,triple);
     }
 
-        private String objectToString(RDFNode o) {
+    
+    private SimpleDateFormat dateFormatter = new SimpleDateFormat("E YYYY/MM/DD");
+    private String objectToString(RDFNode o) {
+
         if (o instanceof Resource)
             return o.toString();
         else if (o instanceof Literal) {
@@ -320,25 +325,29 @@ public class KGFetcher {
             if (l.getDatatype() == null) {
                 return l.getString();
             } else {
-                final String dataType = l.getDatatype().toString();
-                if (dataType.endsWith("long")) {
-                    return String.valueOf(l.getLong());
-                } else if (dataType.endsWith("int") || dataType.endsWith("integer")) {
-                    return String.valueOf(l.getInt());
-                } else if (dataType.endsWith("short")) {
-                    return String.valueOf(l.getShort());
-                } else if (dataType.endsWith("double")) {
-                    return String.valueOf(l.getDouble());
-                } else if (dataType.endsWith("boolean")) {
-                    return String.valueOf(l.getBoolean());
-                } else if (dataType.endsWith("byte")) {
-                    return String.valueOf(l.getByte());
-                } else if (dataType.endsWith("float")) {
-                    return String.valueOf(l.getFloat());
-                } else if (dataType.endsWith("dateTime") || dataType.endsWith("date")  || dataType.endsWith("time")) {
-                    return String.valueOf(l.getValue().toString());
-                } else {
-                    return o.toString();
+                final Object value = l.getValue();
+                if(value != null) {
+                    if (value instanceof Long) {
+                        return String.valueOf(value);
+                    } else if (value instanceof Integer) {
+                        return String.valueOf(value);
+                    } else if (value instanceof Short) {
+                        return String.valueOf(value);
+                    } else if (value instanceof Double) {
+                        return String.valueOf(value);
+                    } else if (value instanceof Boolean) {
+                        return String.valueOf(value);
+                    } else if (value instanceof Byte) {
+                        return String.valueOf(value);
+                    } else if (value instanceof Float) {
+                        return String.valueOf(value);
+                    } else if (l.getValue() instanceof XSDDateTime) {
+                        final Calendar cal = ((XSDDateTime)(l.getValue())).asCalendar();
+                        return dateFormatter.format(cal.getTime())
+                                + " (" + new JalaliCalendar((GregorianCalendar) cal).toString() + ")";
+                    } else {
+                        return l.getString();
+                    }
                 }
             }
         }
