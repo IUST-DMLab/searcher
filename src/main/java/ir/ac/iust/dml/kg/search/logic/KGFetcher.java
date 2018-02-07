@@ -14,11 +14,8 @@ import ir.ac.iust.dml.kg.search.logic.data.ResultEntity;
 import ir.ac.iust.dml.kg.search.logic.data.Triple;
 import ir.ac.iust.dml.kg.search.logic.recommendation.Recommendation;
 import ir.ac.iust.dml.kg.search.logic.recommendation.RecommendationLoader;
-import javafx.util.Pair;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.datatypes.RDFDatatype;
+import org.apache.jena.rdf.model.*;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -307,11 +304,44 @@ public class KGFetcher {
             return;
         String s = intern(stmt.getSubject().toString());
         String p = intern(stmt.getPredicate().toString());
-        String o = intern(stmt.getObject().toString());
+        String o = intern(objectToString(stmt.getObject()));
         Triple triple = new Triple(s,p,o);
         subjTripleMap.put(s,triple);
         if(o.contains("http://"))
             objTripleMap.put(o,triple);
+    }
+
+    private String objectToString(RDFNode o) {
+        if (o instanceof Resource)
+            return o.toString();
+        else if (o instanceof Literal) {
+            final Literal l = (Literal) o;
+            if (l.getDatatype() == null) {
+                return l.getString();
+            } else {
+                final String dataType = l.getDatatype().toString();
+                if (dataType.endsWith("long")) {
+                    return String.valueOf(l.getLong());
+                } else if (dataType.endsWith("int")) {
+                    return String.valueOf(l.getInt());
+                } else if (dataType.endsWith("short")) {
+                    return String.valueOf(l.getShort());
+                } else if (dataType.endsWith("double")) {
+                    return String.valueOf(l.getDouble());
+                } else if (dataType.endsWith("boolean")) {
+                    return String.valueOf(l.getBoolean());
+                } else if (dataType.endsWith("byte")) {
+                    return String.valueOf(l.getByte());
+                } else if (dataType.endsWith("float")) {
+                    return String.valueOf(l.getFloat());
+                } else if (dataType.endsWith("dateTime")) {
+                    return String.valueOf(l.getValue().toString());
+                } else {
+                    return l.getDatatype().toString();
+                }
+            }
+        }
+        return o.toString();
     }
 
     private void serialize(Object obj, String filePath) throws IOException {
