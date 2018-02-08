@@ -1,5 +1,6 @@
 package ir.ac.iust.dml.kg.search.logic;
 
+import com.ghasemkiani.util.icu.PersianCalendar;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multimap;
@@ -7,6 +8,7 @@ import com.google.common.collect.Multiset;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.ibm.icu.text.DateFormat;
 import ir.ac.iust.dml.kg.raw.utils.ConfigReader;
 import ir.ac.iust.dml.kg.search.logic.data.DataValue;
 import ir.ac.iust.dml.kg.search.logic.data.DataValues;
@@ -15,7 +17,6 @@ import ir.ac.iust.dml.kg.search.logic.data.Triple;
 import ir.ac.iust.dml.kg.search.logic.recommendation.Recommendation;
 import ir.ac.iust.dml.kg.search.logic.recommendation.RecommendationLoader;
 import javafx.util.Pair;
-import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.rdf.model.*;
 
@@ -23,7 +24,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -314,8 +314,10 @@ public class KGFetcher {
             objTripleMap.put(o,triple);
     }
 
-    private SimpleDateFormat dateFormatter = new SimpleDateFormat("EEE YYYY/MM/DD");
-    private TimeZone tehranZone = TimeZone.getTimeZone("Asia/Tehran");
+    private Locale faLocale = Locale.forLanguageTag("fa");
+    private com.ibm.icu.util.TimeZone tehranZone = com.ibm.icu.util.TimeZone.getTimeZone("Asia/Tehran");
+    private final com.ibm.icu.util.Calendar pCal = PersianCalendar.getInstance(tehranZone, faLocale);
+    private DateFormat formatter = pCal.getDateTimeFormat(DateFormat.FULL, DateFormat.NONE, faLocale);
     private String objectToString(RDFNode o) {
 
         if (o instanceof Resource)
@@ -342,10 +344,11 @@ public class KGFetcher {
                     } else if (value instanceof Float) {
                         return String.valueOf(value);
                     } else if (l.getValue() instanceof XSDDateTime) {
-                        final Calendar cal = ((XSDDateTime)(l.getValue())).asCalendar();
-                        cal.setTimeZone(tehranZone);
-                        return dateFormatter.format(cal.getTime())
-                                + " (" + new JalaliCalendar((GregorianCalendar) cal).toString() + ")";
+                        synchronized (pCal) {
+                            final Calendar cal = ((XSDDateTime) (l.getValue())).asCalendar();
+                            pCal.setTimeInMillis(cal.getTimeInMillis());
+                            return formatter.format(pCal);
+                        }
                     } else {
                         return l.getString();
                     }
