@@ -41,8 +41,8 @@ public class KGFetcher {
         return recommendationsMap;
     }
     HashSet<String> predicateBlackList = new HashSet<>(Arrays.asList("http://dublincore.org/2012/06/14/dcterms#subject", "http://fkg.iust.ac.ir/ontology/variantLabel",
-                                                        "http://fkg.iust.ac.ir/ontology/wikiPageRedirects","http://fkg.iust.ac.ir/ontology/abstract",
-                                                        "http://fkg.iust.ac.ir/ontology/latitudeDirection", "http://fkg.iust.ac.ir/ontology/longitudeDirection"));
+            "http://fkg.iust.ac.ir/ontology/wikiPageRedirects","http://fkg.iust.ac.ir/ontology/abstract",
+            "http://fkg.iust.ac.ir/ontology/latitudeDirection", "http://fkg.iust.ac.ir/ontology/longitudeDirection"));
     List<String> subjObjBlacklistedPrefixes = Arrays.asList("http://fkg.iust.ac.ir/category/");
 
 
@@ -72,11 +72,11 @@ public class KGFetcher {
         final String virtuosoPass = ConfigReader.INSTANCE.getString("virtuoso.password", "fkgVIRTUOSO2017");
         //graph = new VirtGraph("http://fkg.iust.ac.ir/new", "jdbc:virtuoso://" + virtuosoServer, virtuosoUser, virtuosoPass);
         //model = ModelFactory.createModelForGraph(graph);
-      loadFromTTL(ConfigReader.INSTANCE.getString("searcher.ttl.dir", "ttls"));
+        loadFromTTL(ConfigReader.INSTANCE.getString("searcher.ttl.dir", "ttls"));
         System.err.println("Loading recommendations");
         //ignoring recommendation loading errors in IDE debug mode.
         boolean isDebug = java.lang.management.ManagementFactory.getRuntimeMXBean().
-            getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
+                getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
         if (isDebug) {
             try {
                 recommendationsMap = RecommendationLoader.read();
@@ -314,8 +314,8 @@ public class KGFetcher {
             objTripleMap.put(o,triple);
     }
 
-    
-    private SimpleDateFormat dateFormatter = new SimpleDateFormat("E YYYY/MM/DD");
+    private SimpleDateFormat dateFormatter = new SimpleDateFormat("EEE YYYY/MM/DD");
+    private TimeZone tehranZone = TimeZone.getTimeZone("Asia/Tehran");
     private String objectToString(RDFNode o) {
 
         if (o instanceof Resource)
@@ -343,6 +343,7 @@ public class KGFetcher {
                         return String.valueOf(value);
                     } else if (l.getValue() instanceof XSDDateTime) {
                         final Calendar cal = ((XSDDateTime)(l.getValue())).asCalendar();
+                        cal.setTimeZone(tehranZone);
                         return dateFormatter.format(cal.getTime())
                                 + " (" + new JalaliCalendar((GregorianCalendar) cal).toString() + ")";
                     } else {
@@ -376,10 +377,10 @@ public class KGFetcher {
 
 
 
-    public static void main(String[] args) throws IOException {
-        //KGFetcher fetcher = new KGFetcher();;
-        //fetcher.loadFromTTL(args[0]);
-        KGFetcher.loadRecommendations("C:\\Users\\ali\\Downloads\\recommendations2_sample.json");
+    public static void main(String[] args) throws IOException, SQLException {
+        KGFetcher fetcher = new KGFetcher();
+        fetcher.loadFromTTL(args[0]);
+//        KGFetcher.loadRecommendations("C:\\Users\\ali\\Downloads\\recommendations2_sample.json");
     }
 
     public static void loadRecommendations(String path) throws IOException {
