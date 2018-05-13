@@ -197,7 +197,7 @@ public class KGFetcher {
                     matchedObjectLabels.put(Util.cleanText(relationBasedResult), new Pair<>(getLabel(relationBasedResult),infoKV));
                 }
             }
-            //TODO: Implement collections-based retrieval for reverse direction (if it makes sense).
+            //TODO plan: Implement collections-based retrieval for reverse direction (if it makes sense).
         }
         System.err.println("Number of matched results: " + matchedObjectLabels.size() );
         return matchedObjectLabels;

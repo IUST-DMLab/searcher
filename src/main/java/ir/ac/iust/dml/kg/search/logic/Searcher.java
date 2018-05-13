@@ -114,7 +114,7 @@ public class Searcher {
             System.err.println("\n\nentities:");
             entities.stream().forEach(r -> System.err.println("\t" + r.getIri()));
 
-            // وای وای چه کار زشتی!
+            // Manual Corrections
             doManualCorrections(properties,queryText);
 
             for (Resource subjectR : entities) {
@@ -219,8 +219,8 @@ public class Searcher {
     }
 
     /**
-     *  وای وای چه کار زشتی!
      *  Adds undetected properties according to the patterns.
+     *  TODO: to be developed as an independent module with a look-aside DB
      * @param properties
      * @param queryText
      */
