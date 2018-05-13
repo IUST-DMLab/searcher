@@ -68,8 +68,8 @@ public class KGFetcher {
         System.err.println("Loading KGFetcher...");
         long t1 = System.currentTimeMillis();
         final String virtuosoServer = ConfigReader.INSTANCE.getString("virtuoso.address", "localhost:1111");
-        final String virtuosoUser = ConfigReader.INSTANCE.getString("virtuoso.user", "dba");
-        final String virtuosoPass = ConfigReader.INSTANCE.getString("virtuoso.password", "fkgVIRTUOSO2017");
+        final String virtuosoUser = ConfigReader.INSTANCE.getString("virtuoso.user", "user_e_SHOMA");
+        final String virtuosoPass = ConfigReader.INSTANCE.getString("virtuoso.password", "password_e_SHOMA");
         //graph = new VirtGraph("http://fkg.iust.ac.ir/new", "jdbc:virtuoso://" + virtuosoServer, virtuosoUser, virtuosoPass);
         //model = ModelFactory.createModelForGraph(graph);
         loadFromTTL(ConfigReader.INSTANCE.getString("searcher.ttl.dir", "ttls"));

@@ -22,7 +22,7 @@ public class ReadCache {
         final ResourceCache cache = new ResourceCache(cacheOutputFolder, true);
 
         try (IResourceReader reader = new ResourceReaderFromVirtuoso(virtuosoIP, "1111",
-                "dba", "fkgVIRTUOSO2017", graphURI)) {
+                "user_e_SHOMA", "password_e_SHOMA", graphURI)) {
             cache.cache(reader, 10000);
         }
     }

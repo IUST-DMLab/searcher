@@ -17,8 +17,8 @@ public class KgServiceLogic {
         System.err.println("Loading KgServiceLogic ...");
         long t1 = System.currentTimeMillis();
         final String virtuosoServer = ConfigReader.INSTANCE.getString("virtuoso.address", "localhost:1111");
-        final String virtuosoUser = ConfigReader.INSTANCE.getString("virtuoso.user", "dba");
-        final String virtuosoPass = ConfigReader.INSTANCE.getString("virtuoso.password", "fkgVIRTUOSO2017");
+        final String virtuosoUser = ConfigReader.INSTANCE.getString("virtuoso.user", "user_e_SHOMA");
+        final String virtuosoPass = ConfigReader.INSTANCE.getString("virtuoso.password", "password_e_SHOMA");
       connector = new VirtuosoConnector(ConfigReader.INSTANCE.getString("virtuoso.graph", "http://fkg.iust.ac.ir"),
           virtuosoServer, virtuosoUser, virtuosoPass);
         System.err.printf("KgServiceLogic loaded in %,d ms", (System.currentTimeMillis() - t1));
